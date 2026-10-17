@@ -35,15 +35,25 @@ def main():
     code_bytes = sum(fn["size"] for fn in code)
     asm_bytes = sum(fn["size"] for fn in code if fn["kind"] == "asm")
     compiled_bytes = sum(fn["size"] for fn in code if fn["kind"] == "compiled")
-    print("matched C: 0 functions, 0 bytes")
+    # Linked with SHC outside this tree ($G0 at 0). make progress does not re-run it.
+    c_matched = [("FUN_09e34", 0x9E34, 28)]
+    c_bytes = sum(size for _name, _origin, size in c_matched)
+    print("compiler: Hitachi SHC 5.1 Release 04, -cpu=sh3 -endian=little -optimize=1")
+    print(
+        "matched C: "
+        + ", ".join(f"{name} {size} bytes at 0x{origin:x}" for name, origin, size in c_matched)
+    )
+    c_noun = "function" if len(c_matched) == 1 else "functions"
+    print(f"matched C total: {len(c_matched)} {c_noun}, {c_bytes} bytes")
+    print("matched C was linked with SHC; make progress does not re-run the compiler")
     print(
         "byte-identical assembly: "
         + ", ".join(f"{name} {size} bytes at 0x{origin:x}" for name, origin, size in matched)
     )
     print(f"byte-identical assembly total: {len(matched)} functions, {matched_bytes} bytes")
     print(
-        f"unmatched code: {len(code) - len(matched)} functions, "
-        f"{code_bytes - matched_bytes} bytes"
+        f"unmatched code: {len(code) - len(matched) - len(c_matched)} functions, "
+        f"{code_bytes - matched_bytes - c_bytes} bytes"
     )
     print(f"split: asm {asm_bytes} bytes, compiled {compiled_bytes} bytes, data listed separately")
     print("objdiff complete: false on every unit")

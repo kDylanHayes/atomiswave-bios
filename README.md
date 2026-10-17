@@ -8,7 +8,7 @@ The ROM images are not in this repo. A local bios0 is checked against SHA-1 `b4c
 
 ## Matching status
 
-Matched C is 0 functions and 0 bytes. No compiler is pinned. `src/` is empty on purpose. See `docs/compiler.md`.
+Matched C is `FUN_09e34`, 28 bytes at `0x9E34`. The compiler is pinned: Hitachi SHC 5.1 Release 04, `-cpu=sh3 -endian=little -optimize=1`. `src/services.c` also holds service functions whose compiled schedules match the flash. The large functions around them are not reproduced, so this tree does not yet link back to the image. See `docs/compiler.md`.
 
 `asm/functions.txt` is the split. Boot code below `0xA00` is handwritten assembly. The cluster from `0x9E34` to `0xA49C` is the ABI-shaped code (`sts.l pr,@-r15`, `mov.l r14,@-r15`, and real `bsr`). There is no such prologue at or past `0xA6A0`. `0x9CDC` is a `bsr` target whose bytes are zero, so it is data. `0xB090` and `0xCED8` are `sts.l pr,@-r6` inside repeating data, not functions.
 

@@ -11,7 +11,7 @@
 # 0x9CDC is a bsr target (0x0a012, 0x0a1e0, 0x0a322, 0x0a35a, 0x0a388) and a zero hole, so it is data, not a function
 # last recovered code byte is 0x0a49c; nothing past 0xA6A0 was recovered as code
 # bytes that are not listed were not linear-swept; font, tables, and padding stay data
-# C match is 0; no compiler is pinned
+# Hitachi SHC 5.1 Release 04 is pinned: -cpu=sh3 -endian=little -optimize=1. C match in this build is FUN_09e34, 28 bytes; see docs/compiler.md
 # entry end size kind category name
 000000 00005c     92 asm      boot     reset
 00005c 000100    164 asm      boot     boot

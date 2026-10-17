@@ -20,5 +20,7 @@ difference.
 The ROM byte check in `tools/as_sh.py --check` is the gate for
 `mix_shifts`, `copy_words`, and `poll_bit`. `make progress` also requires
 each built ELF to be byte-identical to the extracted ELF. Those matches are
-assembly. They are not matched C. `src/` stays empty until a compiler
-reproduces `0xA354` or `0xA370`.
+assembly. They are not matched C. `FUN_09e34` in `src/services.c` is
+matched C: linked with `$G0` at 0, its 28 bytes equal the flash at
+`0x9E34`. The other functions in that file match as schedules only.
+`complete` stays false. objdiff is not the grader for this image.

@@ -1,8 +1,8 @@
 {
   "image": "bios0",
   "sha1": "b4c1a26bc8906d5275eb28c701dff2b9365bcdfa",
-  "compiler": null,
-  "c_match_functions": 0,
+  "compiler": "Hitachi SHC 5.1 Release 04 -cpu=sh3 -endian=little -optimize=1",
+  "c_match_functions": 1,
   "notes": [
     "sts.l pr,@-r15 (0x4F22) at 0x09e70, 0x09fd2, 0x0a11a, 0x0a1dc, 0x0a206, 0x0a354, 0x0a370, 0x0a3a4",
     "mov.l r14,@-r15 (0x2FE6) at 0x09e68, 0x09fbc, 0x0a1f4, 0x0a3a0",
@@ -12,7 +12,7 @@
     "0x9CDC is a bsr target (0x0a012, 0x0a1e0, 0x0a322, 0x0a35a, 0x0a388) and a zero hole, so it is data, not a function",
     "last recovered code byte is 0x0a49c; nothing past 0xA6A0 was recovered as code",
     "bytes that are not listed were not linear-swept; font, tables, and padding stay data",
-    "C match is 0; no compiler is pinned"
+    "Hitachi SHC 5.1 Release 04 is pinned: -cpu=sh3 -endian=little -optimize=1. C match in this build is FUN_09e34, 28 bytes; see docs/compiler.md"
   ],
   "functions": [
     {

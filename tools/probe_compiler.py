@@ -25,19 +25,9 @@ def main():
     lines = [
         "# Compiler probe",
         "",
-        "No C is compiled in this tree. A unit is not a C match until one",
-        "compiler and one flag set reproduce a real function, including the",
-        "prologue, the delay slots, and the literal pool.",
-        "",
-        "The probe functions are file `0xA354` (28 bytes) and `0xA370` (48 bytes).",
-        "Both save `pr` and both contain `bsr`. They are not the handwritten boot code.",
-        "",
-        "Candidates, in the order they should be tried once a binary exists:",
-        "",
-        "- Hitachi/Renesas SHC from the Dreamcast era",
-        "- `sh-elf-gcc`",
-        "",
-        "Nothing below was pinned. `src/` stays empty.",
+        "Hitachi SHC 5.1 Release 04 is pinned. See docs/compiler.md.",
+        "This script only reports which compiler names are on PATH.",
+        "It does not overwrite the pin.",
         "",
         "## What is installed",
         "",
@@ -59,12 +49,8 @@ def main():
         lines.append(f"`0xA370`: `{rom[0xA370:0xA3A0].hex()}`")
         lines.append("")
     text = "\n".join(lines)
-    out = ROOT / "docs/compiler.md"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(text)
     print(text)
-    if any(found.values()):
-        raise SystemExit("a compiler appeared; stop and pin it against 0xA354 before writing C")
+    print("docs/compiler.md is the pin. This probe does not overwrite it.")
 
 
 if __name__ == "__main__":

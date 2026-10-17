@@ -583,7 +583,10 @@ def notes_for(rom, functions, holes, refs):
         else f"recovered code extends to 0x{last:05x}, which is past 0xA6A0"
     )
     lines.append("bytes that are not listed were not linear-swept; font, tables, and padding stay data")
-    lines.append("C match is 0; no compiler is pinned")
+    lines.append(
+        "Hitachi SHC 5.1 Release 04 is pinned: -cpu=sh3 -endian=little -optimize=1. "
+        "C match in this build is FUN_09e34, 28 bytes; see docs/compiler.md"
+    )
     return lines
 
 
@@ -654,8 +657,8 @@ def main():
     payload = {
         "image": "bios0",
         "sha1": digest,
-        "compiler": None,
-        "c_match_functions": 0,
+        "compiler": "Hitachi SHC 5.1 Release 04 -cpu=sh3 -endian=little -optimize=1",
+        "c_match_functions": 1,
         "notes": notes,
         "functions": functions,
         "data": data,
