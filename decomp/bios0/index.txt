@@ -1,0 +1,41 @@
+language SuperH4:LE:32:default
+file bios0.ic23
+reset_alias 0xa0000000
+physical_image 0x00000000
+flash stays writable so program_bootrom keeps its command stores
+reset jmp at 0xa0000032 targets boot at physical 0x5c
+jmp at file 0x966 targets 0xA0000000 bitwise-or *(uint32 *)0x01AC006C
+bios1.ic23 matches these bytes except six footer bytes
+footer file offset 0x1a000 length 12
+bios0 footer 01 11 03 02 07 00 16 3b 01 5f 00 00
+bios1 footer 01 11 03 03 11 00 43 17 0a 2c 00 00
+differing offsets 0x1a003 0x1a004 0x1a006 0x1a007 0x1a008 0x1a009
+P2 aliases of the same flash are not exported
+ok lines below are entry, name, and byte count
+0000005c	boot	146
+00000100	exc_general	214
+00000318	mix_shifts	40
+00000350	init_memory	126
+00000400	exc_tlb_miss	38
+0000046c	copy_words	24
+00000484	set_system_bits	106
+00000538	check_header	190
+00000600	exc_interrupt	116
+000007a4	program_bootrom	284
+0000097c	poll_bit	24
+0000099c	blit_glyphs	70
+00009e34	FUN_00009e34	28
+00009e50	FUN_00009e50	24
+00009e68	FUN_00009e68	314
+0000a116	FUN_0000a116	46
+0000a144	FUN_0000a144	20
+0000a158	FUN_0000a158	6
+0000a15e	FUN_0000a15e	12
+0000a1d4	FUN_0000a1d4	6
+0000a1da	FUN_0000a1da	26
+0000a1f4	FUN_0000a1f4	322
+0000a354	FUN_0000a354	28
+0000a370	FUN_0000a370	48
+0000a3a0	FUN_0000a3a0	236
+a0000000	reset	54
+ok 26 failed 0
