@@ -102,7 +102,10 @@ volatile unsigned short keeps the pool, the reload, and `add` into
 `r0`, but the extend is `extu.w r0,r4`. A signed store of `+ 65535`
 folds to `add #-1`. An unsigned store keeps the pool. A cast used only
 in the zero test is deleted, because a sign-extended short is zero in
-the same cases. SHC has not emitted `extu.w r0,r0`.
+the same cases. `-rtnext` does emit `extu.w r0,r0`, in the `rts` delay
+of a function whose return type is `unsigned short`. `FUN_09e34` is
+unchanged by that flag. Inlining the same return does not keep the
+extend in `r0`; the caller still gets `extu.w r0,r4`.
 
 `FUN_0a144` compiled alone has the flash `set_cr` order, zero in `r0`,
 address in `r4`, and the reload in the `rts` delay. The address load
@@ -129,5 +132,10 @@ byte-identical: `poll_bit`, `copy_words`, and `mix_shifts`.
 - `-nospeed`, `-speed`, and `-size` on top of `-optimize=1`: `FUN_09e34`
   still matches, and none of them removes the `r13` zero cache or the
   `extu.w r0,r4` decrement. The pin stays `-optimize=1` alone.
+- `-rtnext`: `extu.w r0,r0` appears only in the delay slot of an
+  `unsigned short` return. It does not fix the inlined decrement.
+- `#pragma regsave`: saves `r8`–`r14` plus `mach` and `macl`. The
+  argument test then sits after the `r14` push, which is the flash
+  order, and the extra saves are not the flash.
 - A one-function file with extern callees: `jsr` through a literal pool,
   not the flash `bsr`.
