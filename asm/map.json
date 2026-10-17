@@ -1,0 +1,569 @@
+{
+  "image": "bios0",
+  "sha1": "b4c1a26bc8906d5275eb28c701dff2b9365bcdfa",
+  "compiler": null,
+  "c_match_functions": 0,
+  "notes": [
+    "sts.l pr,@-r15 (0x4F22) at 0x09e70, 0x09fd2, 0x0a11a, 0x0a1dc, 0x0a206, 0x0a354, 0x0a370, 0x0a3a4",
+    "mov.l r14,@-r15 (0x2FE6) at 0x09e68, 0x09fbc, 0x0a1f4, 0x0a3a0",
+    "no 0x4F22 or 0x2FE6 site is at or past 0xA6A0",
+    "0xb090 halfword is 0x4622 (sts.l pr,@-r6 inside repeating data, not an entry)",
+    "0xced8 halfword is 0x4622 (same data pattern, not an entry)",
+    "0x9CDC is a bsr target (0x0a012, 0x0a1e0, 0x0a322, 0x0a35a, 0x0a388) and a zero hole, so it is data, not a function",
+    "last recovered code byte is 0x0a49c; nothing past 0xA6A0 was recovered as code",
+    "bytes that are not listed were not linear-swept; font, tables, and padding stay data",
+    "C match is 0; no compiler is pinned"
+  ],
+  "functions": [
+    {
+      "entry": 0,
+      "end": 92,
+      "name": "reset",
+      "insns": 27,
+      "kind": "asm",
+      "category": "boot",
+      "size": 92
+    },
+    {
+      "entry": 92,
+      "end": 256,
+      "name": "boot",
+      "insns": 73,
+      "kind": "asm",
+      "category": "boot",
+      "size": 164
+    },
+    {
+      "entry": 256,
+      "end": 792,
+      "name": "exc_general",
+      "insns": 107,
+      "kind": "asm",
+      "category": "boot",
+      "size": 536
+    },
+    {
+      "entry": 792,
+      "end": 848,
+      "name": "mix_shifts",
+      "insns": 20,
+      "kind": "asm",
+      "category": "boot",
+      "source": "asm/boot/mix_shifts.s",
+      "size": 56
+    },
+    {
+      "entry": 848,
+      "end": 1024,
+      "name": "init_memory",
+      "insns": 63,
+      "kind": "asm",
+      "category": "boot",
+      "size": 176
+    },
+    {
+      "entry": 1024,
+      "end": 1132,
+      "name": "exc_tlb_miss",
+      "insns": 19,
+      "kind": "asm",
+      "category": "boot",
+      "size": 108
+    },
+    {
+      "entry": 1132,
+      "end": 1156,
+      "name": "copy_words",
+      "insns": 12,
+      "kind": "asm",
+      "category": "boot",
+      "source": "asm/boot/copy_words.s",
+      "size": 24
+    },
+    {
+      "entry": 1156,
+      "end": 1336,
+      "name": "set_system_bits",
+      "insns": 53,
+      "kind": "asm",
+      "category": "boot",
+      "size": 180
+    },
+    {
+      "entry": 1336,
+      "end": 1536,
+      "name": "check_header",
+      "insns": 95,
+      "kind": "asm",
+      "category": "boot",
+      "size": 200
+    },
+    {
+      "entry": 1536,
+      "end": 1808,
+      "name": "exc_interrupt",
+      "insns": 58,
+      "kind": "asm",
+      "category": "boot",
+      "size": 272
+    },
+    {
+      "entry": 1956,
+      "end": 2428,
+      "name": "program_bootrom",
+      "insns": 142,
+      "kind": "asm",
+      "category": "boot",
+      "size": 472
+    },
+    {
+      "entry": 2428,
+      "end": 2460,
+      "name": "poll_bit",
+      "insns": 12,
+      "kind": "asm",
+      "category": "boot",
+      "source": "asm/boot/poll_bit.s",
+      "size": 32
+    },
+    {
+      "entry": 2460,
+      "end": 2560,
+      "name": "blit_glyphs",
+      "insns": 35,
+      "kind": "asm",
+      "category": "boot",
+      "size": 100
+    },
+    {
+      "entry": 40500,
+      "end": 40528,
+      "name": "FUN_09e34",
+      "insns": 14,
+      "kind": "compiled",
+      "category": "services",
+      "size": 28
+    },
+    {
+      "entry": 40528,
+      "end": 40552,
+      "name": "FUN_09e50",
+      "insns": 12,
+      "kind": "compiled",
+      "category": "services",
+      "size": 24
+    },
+    {
+      "entry": 40552,
+      "end": 40892,
+      "name": "FUN_09e68",
+      "insns": 153,
+      "kind": "compiled",
+      "category": "services",
+      "size": 340
+    },
+    {
+      "entry": 40892,
+      "end": 41238,
+      "name": "FUN_09fbc",
+      "insns": 172,
+      "kind": "compiled",
+      "category": "services",
+      "size": 346
+    },
+    {
+      "entry": 41238,
+      "end": 41284,
+      "name": "FUN_0a116",
+      "insns": 23,
+      "kind": "compiled",
+      "category": "services",
+      "size": 46
+    },
+    {
+      "entry": 41284,
+      "end": 41304,
+      "name": "FUN_0a144",
+      "insns": 10,
+      "kind": "compiled",
+      "category": "services",
+      "size": 20
+    },
+    {
+      "entry": 41304,
+      "end": 41310,
+      "name": "FUN_0a158",
+      "insns": 3,
+      "kind": "compiled",
+      "category": "services",
+      "size": 6
+    },
+    {
+      "entry": 41310,
+      "end": 41322,
+      "name": "FUN_0a15e",
+      "insns": 6,
+      "kind": "compiled",
+      "category": "services",
+      "size": 12
+    },
+    {
+      "entry": 41322,
+      "end": 41428,
+      "name": "FUN_0a16a",
+      "insns": 6,
+      "kind": "compiled",
+      "category": "services",
+      "size": 106
+    },
+    {
+      "entry": 41428,
+      "end": 41434,
+      "name": "FUN_0a1d4",
+      "insns": 3,
+      "kind": "compiled",
+      "category": "services",
+      "size": 6
+    },
+    {
+      "entry": 41434,
+      "end": 41460,
+      "name": "FUN_0a1da",
+      "insns": 13,
+      "kind": "compiled",
+      "category": "services",
+      "size": 26
+    },
+    {
+      "entry": 41460,
+      "end": 41812,
+      "name": "FUN_0a1f4",
+      "insns": 161,
+      "kind": "compiled",
+      "category": "services",
+      "size": 352
+    },
+    {
+      "entry": 41812,
+      "end": 41840,
+      "name": "FUN_0a354",
+      "insns": 14,
+      "kind": "compiled",
+      "category": "services",
+      "size": 28
+    },
+    {
+      "entry": 41840,
+      "end": 41888,
+      "name": "FUN_0a370",
+      "insns": 24,
+      "kind": "compiled",
+      "category": "services",
+      "size": 48
+    },
+    {
+      "entry": 41888,
+      "end": 42140,
+      "name": "FUN_0a3a0",
+      "insns": 118,
+      "kind": "compiled",
+      "category": "services",
+      "size": 252
+    }
+  ],
+  "data": [
+    {
+      "entry": 40156,
+      "end": 40178,
+      "name": "hole_09cdc",
+      "kind": "data",
+      "note": "bsr target in erased flash (0x00)"
+    },
+    {
+      "entry": 40274,
+      "end": 40472,
+      "name": "hole_09d52",
+      "kind": "data",
+      "note": "bsr target in erased flash (0xFF)"
+    },
+    {
+      "entry": 106496,
+      "end": 106508,
+      "name": "footer",
+      "kind": "data",
+      "note": "12-byte footer. bios1 differs at 0x1a003, 0x1a004, 0x1a006, 0x1a007, 0x1a008, 0x1a009"
+    }
+  ],
+  "calls": [
+    {
+      "kind": "jsr",
+      "site": 712,
+      "target": 792,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 732,
+      "target": 792,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 1030,
+      "target": 1132,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 1188,
+      "target": 2428,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 1380,
+      "target": 2460,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 1390,
+      "target": 2460,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 1398,
+      "target": 2428,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 1244,
+      "target": 2460,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 1254,
+      "target": 2460,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 1640,
+      "target": 2428,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40684,
+      "target": 41888,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40744,
+      "target": 40500,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40782,
+      "target": 40528,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40724,
+      "target": 40528,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40662,
+      "target": 41888,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40676,
+      "target": 41428,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40808,
+      "target": 41428,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40656,
+      "target": 41428,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40578,
+      "target": 41310,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40918,
+      "target": 41322,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40974,
+      "target": 41238,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 40986,
+      "target": 41434,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41036,
+      "target": 41304,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41042,
+      "target": 40552,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41050,
+      "target": 41434,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41054,
+      "target": 41304,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41062,
+      "target": 41284,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41176,
+      "target": 41840,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41200,
+      "target": 41460,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41028,
+      "target": 41304,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41444,
+      "target": 40552,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41510,
+      "target": 41840,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41562,
+      "target": 41840,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41738,
+      "target": 41428,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41758,
+      "target": 41812,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41822,
+      "target": 41888,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41846,
+      "target": 41428,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41850,
+      "target": 41812,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41860,
+      "target": 41428,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 41868,
+      "target": 41888,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 42118,
+      "target": 41428,
+      "status": "code"
+    },
+    {
+      "kind": "bsr",
+      "site": 42058,
+      "target": 40500,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 1996,
+      "target": 2460,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 2006,
+      "target": 2460,
+      "status": "code"
+    },
+    {
+      "kind": "jsr",
+      "site": 2204,
+      "target": 2428,
+      "status": "code"
+    }
+  ]
+}

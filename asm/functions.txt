@@ -1,0 +1,47 @@
+# Atomiswave BIOS bios0 split
+# sha1 b4c1a26bc8906d5275eb28c701dff2b9365bcdfa
+# kind is asm, compiled, or data. compiled means an ABI prologue or a real bsr,
+# or a routine past 0x9E00 that is only reached from one of those.
+# asm is handwritten boot code. It is not matched C.
+# sts.l pr,@-r15 (0x4F22) at 0x09e70, 0x09fd2, 0x0a11a, 0x0a1dc, 0x0a206, 0x0a354, 0x0a370, 0x0a3a4
+# mov.l r14,@-r15 (0x2FE6) at 0x09e68, 0x09fbc, 0x0a1f4, 0x0a3a0
+# no 0x4F22 or 0x2FE6 site is at or past 0xA6A0
+# 0xb090 halfword is 0x4622 (sts.l pr,@-r6 inside repeating data, not an entry)
+# 0xced8 halfword is 0x4622 (same data pattern, not an entry)
+# 0x9CDC is a bsr target (0x0a012, 0x0a1e0, 0x0a322, 0x0a35a, 0x0a388) and a zero hole, so it is data, not a function
+# last recovered code byte is 0x0a49c; nothing past 0xA6A0 was recovered as code
+# bytes that are not listed were not linear-swept; font, tables, and padding stay data
+# C match is 0; no compiler is pinned
+# entry end size kind category name
+000000 00005c     92 asm      boot     reset
+00005c 000100    164 asm      boot     boot
+000100 000318    536 asm      boot     exc_general
+000318 000350     56 asm      boot     mix_shifts
+000350 000400    176 asm      boot     init_memory
+000400 00046c    108 asm      boot     exc_tlb_miss
+00046c 000484     24 asm      boot     copy_words
+000484 000538    180 asm      boot     set_system_bits
+000538 000600    200 asm      boot     check_header
+000600 000710    272 asm      boot     exc_interrupt
+0007a4 00097c    472 asm      boot     program_bootrom
+00097c 00099c     32 asm      boot     poll_bit
+00099c 000a00    100 asm      boot     blit_glyphs
+009e34 009e50     28 compiled services FUN_09e34
+009e50 009e68     24 compiled services FUN_09e50
+009e68 009fbc    340 compiled services FUN_09e68
+009fbc 00a116    346 compiled services FUN_09fbc
+00a116 00a144     46 compiled services FUN_0a116
+00a144 00a158     20 compiled services FUN_0a144
+00a158 00a15e      6 compiled services FUN_0a158
+00a15e 00a16a     12 compiled services FUN_0a15e
+00a16a 00a1d4    106 compiled services FUN_0a16a
+00a1d4 00a1da      6 compiled services FUN_0a1d4
+00a1da 00a1f4     26 compiled services FUN_0a1da
+00a1f4 00a354    352 compiled services FUN_0a1f4
+00a354 00a370     28 compiled services FUN_0a354
+00a370 00a3a0     48 compiled services FUN_0a370
+00a3a0 00a49c    252 compiled services FUN_0a3a0
+# data
+009cdc 009cf2     22 data     data     hole_09cdc  bsr target in erased flash (0x00)
+009d52 009e18    198 data     data     hole_09d52  bsr target in erased flash (0xFF)
+01a000 01a00c     12 data     data     footer  12-byte footer. bios1 differs at 0x1a003, 0x1a004, 0x1a006, 0x1a007, 0x1a008, 0x1a009

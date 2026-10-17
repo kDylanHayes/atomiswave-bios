@@ -1,0 +1,5 @@
+tools/bin/
+expected/
+build/
+*.o
+.DS_Store

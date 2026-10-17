@@ -1,0 +1,311 @@
+{
+  "$schema": "https://raw.githubusercontent.com/encounter/objdiff/main/config.schema.json",
+  "min_version": "3.0.0",
+  "custom_make": "make",
+  "build_target": false,
+  "build_base": true,
+  "watch_patterns": [
+    "*.s",
+    "*.c",
+    "*.h",
+    "*.py"
+  ],
+  "progress_categories": [
+    {
+      "id": "boot",
+      "name": "Boot assembly"
+    },
+    {
+      "id": "services",
+      "name": "ABI-shaped services"
+    }
+  ],
+  "units": [
+    {
+      "name": "boot/reset",
+      "target_path": "expected/boot/reset.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "boot/boot",
+      "target_path": "expected/boot/boot.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "boot/exc_general",
+      "target_path": "expected/boot/exc_general.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "boot/mix_shifts",
+      "target_path": "expected/boot/mix_shifts.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ],
+        "source_path": "asm/boot/mix_shifts.s"
+      },
+      "base_path": "build/asm/boot/mix_shifts.o"
+    },
+    {
+      "name": "boot/init_memory",
+      "target_path": "expected/boot/init_memory.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "boot/exc_tlb_miss",
+      "target_path": "expected/boot/exc_tlb_miss.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "boot/copy_words",
+      "target_path": "expected/boot/copy_words.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ],
+        "source_path": "asm/boot/copy_words.s"
+      },
+      "base_path": "build/asm/boot/copy_words.o"
+    },
+    {
+      "name": "boot/set_system_bits",
+      "target_path": "expected/boot/set_system_bits.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "boot/check_header",
+      "target_path": "expected/boot/check_header.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "boot/exc_interrupt",
+      "target_path": "expected/boot/exc_interrupt.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "boot/program_bootrom",
+      "target_path": "expected/boot/program_bootrom.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "boot/poll_bit",
+      "target_path": "expected/boot/poll_bit.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ],
+        "source_path": "asm/boot/poll_bit.s"
+      },
+      "base_path": "build/asm/boot/poll_bit.o"
+    },
+    {
+      "name": "boot/blit_glyphs",
+      "target_path": "expected/boot/blit_glyphs.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "boot"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_09e34",
+      "target_path": "expected/services/FUN_09e34.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_09e50",
+      "target_path": "expected/services/FUN_09e50.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_09e68",
+      "target_path": "expected/services/FUN_09e68.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_09fbc",
+      "target_path": "expected/services/FUN_09fbc.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a116",
+      "target_path": "expected/services/FUN_0a116.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a144",
+      "target_path": "expected/services/FUN_0a144.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a158",
+      "target_path": "expected/services/FUN_0a158.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a15e",
+      "target_path": "expected/services/FUN_0a15e.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a16a",
+      "target_path": "expected/services/FUN_0a16a.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a1d4",
+      "target_path": "expected/services/FUN_0a1d4.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a1da",
+      "target_path": "expected/services/FUN_0a1da.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a1f4",
+      "target_path": "expected/services/FUN_0a1f4.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a354",
+      "target_path": "expected/services/FUN_0a354.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a370",
+      "target_path": "expected/services/FUN_0a370.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    },
+    {
+      "name": "services/FUN_0a3a0",
+      "target_path": "expected/services/FUN_0a3a0.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "services"
+        ]
+      }
+    }
+  ]
+}
