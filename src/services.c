@@ -3,14 +3,14 @@
  * Hitachi SHC 5.1 Release 04:
  *   shc -cpu=sh3 -endian=little -optimize=1
  *
- * The schedules below match the flash. FUN_09e34 also matches as linked
- * bytes: $G0 at 0 fills its one GBR relocation, and the other 13
+ * The schedules below match the flash. Only FUN_09e34 is linked into
+ * the image: $G0 at 0 fills its one GBR relocation, and the other 13
  * halfwords have no relocation. A bsr displacement matches only when
- * every static callee in this file has its real size. This file is not
- * a flash image yet.
+ * every static callee in this file has its real size. This file is the
+ * schedule source. It is not the flash image.
  *
  * hole_09cdc, FUN_09e68, and FUN_0a3a0 are named from the bsr targets.
- * Their bodies are not reproduced here. An extern compiles as jsr.
+ * Their bodies are not in this file. An extern compiles as jsr.
  * They have to be static in this file before those calls become bsr.
  */
 

@@ -2,7 +2,7 @@
 
 Sammy Atomiswave (SYSTEM X) SH-4 boot flash, IC23. Hitachi SH-4, little-endian, 128 KiB.
 
-`decomp/bios0/functions` is Ghidra pseudocode for bios0. `decomp/bios0/index.txt` lists each function. bios1 matches those bytes except six footer bytes, also listed in the index. That C is decompiler output, not rebuilt source.
+`decomp/bios0/functions` is Ghidra pseudocode for bios0. `decomp/bios0/index.txt` lists each exported function. Those byte counts are the Ghidra bodies and omit literal pools. `FUN_09fbc` and `FUN_0a16a` were not exported. `asm/functions.txt` is the byte split. bios1 matches those bytes except six footer bytes, also listed in the index. That C is decompiler output, not rebuilt source.
 
 The ROM images are not in this repo. A local bios0 is checked against SHA-1 `b4c1a26bc8906d5275eb28c701dff2b9365bcdfa` before the split. The default path is `~/Documents/awbios/bios0.ic23`.
 
@@ -21,3 +21,5 @@ make
 ```
 
 That refreshes the split, assembles every unit, links `FUN_09e34`, writes `objdiff.json`, and fails unless the image matches.
+
+A clean clone cannot finish that. `make` needs the local bios0 image, the gitignored `tools/bin/objdiff-cli`, and the Boxedwine prefix that `tools/link_matched.py` uses to run the pinned SHC. The compiler and objdiff are not in this repo.

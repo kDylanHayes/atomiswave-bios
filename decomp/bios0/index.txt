@@ -12,6 +12,8 @@ bios1 footer 01 11 03 03 11 00 43 17 0a 2c 00 00
 differing offsets 0x1a003 0x1a004 0x1a006 0x1a007 0x1a008 0x1a009
 P2 aliases of the same flash are not exported
 ok lines below are entry, name, and byte count
+byte counts are the Ghidra bodies and omit literal pools
+FUN_09fbc and FUN_0a16a were not exported; asm/functions.txt is the split
 0000005c	boot	146
 00000100	exc_general	214
 00000318	mix_shifts	40

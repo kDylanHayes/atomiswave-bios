@@ -185,8 +185,9 @@ addresses, which means those symbols have to occupy those offsets in
 the same translation unit. An empty C function is `rts; nop`, which is
 not what the flash stores there.
 
-The boot block below `0xA00` stays assembly. Three routines are already
-byte-identical: `poll_bit`, `copy_words`, and `mix_shifts`.
+The boot block below `0xA00` is byte-identical assembly. `poll_bit`,
+`copy_words`, and `mix_shifts` were written by hand. The other boot
+ranges were lifted from the flash.
 
 ## Flags that were rejected
 

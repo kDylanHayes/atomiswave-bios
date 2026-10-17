@@ -2,7 +2,8 @@
 # sha1 b4c1a26bc8906d5275eb28c701dff2b9365bcdfa
 # kind is asm, compiled, or data. compiled means an ABI prologue or a real bsr,
 # or a routine past 0x9E00 that is only reached from one of those.
-# asm is handwritten boot code. It is not matched C.
+# A compiled range is checked assembly in the image, except FUN_09e34, which is matched C.
+# mix_shifts, copy_words, and poll_bit are handwritten. The other .s files are lifted from flash.
 # sts.l pr,@-r15 (0x4F22) at 0x09e70, 0x09fd2, 0x0a11a, 0x0a1dc, 0x0a206, 0x0a354, 0x0a370, 0x0a3a4
 # mov.l r14,@-r15 (0x2FE6) at 0x09e68, 0x09fbc, 0x0a1f4, 0x0a3a0
 # no 0x4F22 or 0x2FE6 site is at or past 0xA6A0

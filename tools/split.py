@@ -598,7 +598,8 @@ def write_text(path, functions, data, notes, digest):
         f"# sha1 {digest}",
         "# kind is asm, compiled, or data. compiled means an ABI prologue or a real bsr,",
         "# or a routine past 0x9E00 that is only reached from one of those.",
-        "# asm is handwritten boot code. It is not matched C.",
+        "# A compiled range is checked assembly in the image, except FUN_09e34, which is matched C.",
+        "# mix_shifts, copy_words, and poll_bit are handwritten. The other .s files are lifted from flash.",
     ]
     lines.extend(f"# {note}" for note in notes)
     lines.append("# entry end size kind category name")
