@@ -22,6 +22,7 @@
       "insns": 27,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/reset.s",
       "size": 92
     },
     {
@@ -31,6 +32,7 @@
       "insns": 73,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/boot.s",
       "size": 164
     },
     {
@@ -40,6 +42,7 @@
       "insns": 107,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/exc_general.s",
       "size": 536
     },
     {
@@ -59,6 +62,7 @@
       "insns": 63,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/init_memory.s",
       "size": 176
     },
     {
@@ -68,6 +72,7 @@
       "insns": 19,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/exc_tlb_miss.s",
       "size": 108
     },
     {
@@ -87,6 +92,7 @@
       "insns": 53,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/set_system_bits.s",
       "size": 180
     },
     {
@@ -96,6 +102,7 @@
       "insns": 95,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/check_header.s",
       "size": 200
     },
     {
@@ -105,6 +112,7 @@
       "insns": 58,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/exc_interrupt.s",
       "size": 272
     },
     {
@@ -114,6 +122,7 @@
       "insns": 142,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/program_bootrom.s",
       "size": 472
     },
     {
@@ -133,6 +142,7 @@
       "insns": 35,
       "kind": "asm",
       "category": "boot",
+      "source": "asm/boot/blit_glyphs.s",
       "size": 100
     },
     {
@@ -142,6 +152,8 @@
       "insns": 14,
       "kind": "compiled",
       "category": "services",
+      "matched_c": true,
+      "object": "build/services/FUN_09e34.o",
       "size": 28
     },
     {
@@ -151,6 +163,7 @@
       "insns": 12,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_09e50.s",
       "size": 24
     },
     {
@@ -160,6 +173,7 @@
       "insns": 153,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_09e68.s",
       "size": 340
     },
     {
@@ -169,6 +183,7 @@
       "insns": 172,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_09fbc.s",
       "size": 346
     },
     {
@@ -178,6 +193,7 @@
       "insns": 23,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a116.s",
       "size": 46
     },
     {
@@ -187,6 +203,7 @@
       "insns": 10,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a144.s",
       "size": 20
     },
     {
@@ -196,6 +213,7 @@
       "insns": 3,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a158.s",
       "size": 6
     },
     {
@@ -205,6 +223,7 @@
       "insns": 6,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a15e.s",
       "size": 12
     },
     {
@@ -214,6 +233,7 @@
       "insns": 6,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a16a.s",
       "size": 106
     },
     {
@@ -223,6 +243,7 @@
       "insns": 3,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a1d4.s",
       "size": 6
     },
     {
@@ -232,6 +253,7 @@
       "insns": 13,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a1da.s",
       "size": 26
     },
     {
@@ -241,6 +263,7 @@
       "insns": 161,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a1f4.s",
       "size": 352
     },
     {
@@ -250,6 +273,7 @@
       "insns": 14,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a354.s",
       "size": 28
     },
     {
@@ -259,6 +283,7 @@
       "insns": 24,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a370.s",
       "size": 48
     },
     {
@@ -268,6 +293,7 @@
       "insns": 118,
       "kind": "compiled",
       "category": "services",
+      "source": "asm/services/FUN_0a3a0.s",
       "size": 252
     }
   ],
@@ -277,21 +303,24 @@
       "end": 40178,
       "name": "hole_09cdc",
       "kind": "data",
-      "note": "bsr target in erased flash (0x00)"
+      "note": "bsr target in erased flash (0x00)",
+      "source": "asm/data/hole_09cdc.s"
     },
     {
       "entry": 40274,
       "end": 40472,
       "name": "hole_09d52",
       "kind": "data",
-      "note": "bsr target in erased flash (0xFF)"
+      "note": "bsr target in erased flash (0xFF)",
+      "source": "asm/data/hole_09d52.s"
     },
     {
       "entry": 106496,
       "end": 106508,
       "name": "footer",
       "kind": "data",
-      "note": "12-byte footer. bios1 differs at 0x1a003, 0x1a004, 0x1a006, 0x1a007, 0x1a008, 0x1a009"
+      "note": "12-byte footer. bios1 differs at 0x1a003, 0x1a004, 0x1a006, 0x1a007, 0x1a008, 0x1a009",
+      "source": "asm/data/footer.s"
     }
   ],
   "calls": [

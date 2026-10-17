@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
-"""Print matched C, byte-identical assembly, and unmatched code separately."""
+"""Byte gate for the bios0 image.
+
+Every code range is either linked C or checked assembly. Hole and footer
+bytes come from their assembly objects. Font, tables, and padding are copied
+from the ROM only where no object was placed. A built object whose .text
+differs from flash fails this command. objdiff's percent is recorded after
+that check; it is not the grader by itself.
+"""
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -11,61 +19,121 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import sh4
+from link_matched import PIN_FLAGS, REJECTED
 
 ROOT = Path(__file__).resolve().parents[1]
-ROM = Path.home() / "Documents/awbios/bios0.ic23"
+ROM_PATH = Path.home() / "Documents/awbios/bios0.ic23"
+SHA1 = "b4c1a26bc8906d5275eb28c701dff2b9365bcdfa"
 CLI = ROOT / "tools/bin/objdiff-cli"
+IMAGE = ROOT / "build/bios0.ic23"
 
 
-def rom_check(rom):
-    matched = []
-    for name in ("poll_bit", "copy_words", "mix_shifts"):
-        origin, data, _symbol = sh4.assemble((ROOT / "asm/boot" / f"{name}.s").read_text())
-        sh4.check_against_rom(origin, data, rom)
-        matched.append((name, origin, len(data)))
-    return matched
+def object_for(item):
+    if item.get("object"):
+        return ROOT / item["object"]
+    source = item.get("source")
+    if source and source.endswith(".s"):
+        return ROOT / "build" / (source[:-2] + ".o")
+    return None
+
+
+def text_of(path, lo, hi):
+    if not path.is_file():
+        raise SystemExit(f"missing built object {path}")
+    blob = path.read_bytes()
+    data = sh4.elf_text(blob)
+    if len(data) != hi - lo:
+        raise SystemExit(f"{path.name}: .text is {len(data)} bytes, flash span is {hi - lo}")
+    return blob, data
+
+
+def place(image, covered, origin, data, label):
+    for offset, byte in enumerate(data):
+        index = origin + offset
+        if covered[index]:
+            raise SystemExit(f"{label} overlaps another object at {index:#x}")
+        image[index] = byte
+        covered[index] = 1
 
 
 def main():
-    rom = ROM.read_bytes()
+    for flag in REJECTED:
+        if flag in PIN_FLAGS:
+            raise SystemExit(f"pin contains rejected flag {flag}")
+    rom = ROM_PATH.read_bytes()
+    if hashlib.sha1(rom).hexdigest() != SHA1 or len(rom) != 131072:
+        raise SystemExit("ROM is not bios0")
     payload = json.loads((ROOT / "asm/map.json").read_text())
-    matched = rom_check(rom)
-    matched_bytes = sum(size for _name, _origin, size in matched)
-    code = payload["functions"]
-    code_bytes = sum(fn["size"] for fn in code)
-    asm_bytes = sum(fn["size"] for fn in code if fn["kind"] == "asm")
-    compiled_bytes = sum(fn["size"] for fn in code if fn["kind"] == "compiled")
-    # Linked with SHC outside this tree ($G0 at 0). make progress does not re-run it.
-    c_matched = [("FUN_09e34", 0x9E34, 28)]
-    c_bytes = sum(size for _name, _origin, size in c_matched)
-    print("compiler: Hitachi SHC 5.1 Release 04, -cpu=sh3 -endian=little -optimize=1")
+    image = bytearray(len(rom))
+    covered = bytearray(len(rom))
+    c_matched = []
+    asm_matched = []
+    for fn in payload["functions"]:
+        path = object_for(fn)
+        if path is None:
+            raise SystemExit(f"{fn['name']} has no built object")
+        blob, data = text_of(path, fn["entry"], fn["end"])
+        flash = rom[fn["entry"]:fn["end"]]
+        if data != flash:
+            raise SystemExit(f"{fn['name']}: built object does not match flash at {fn['entry']:#x}")
+        expected = ROOT / "expected" / fn["category"] / f"{fn['name']}.o"
+        if blob != expected.read_bytes():
+            raise SystemExit(f"{fn['name']}: built ELF is not the extracted ELF")
+        place(image, covered, fn["entry"], data, fn["name"])
+        if fn.get("matched_c"):
+            c_matched.append(fn)
+        else:
+            asm_matched.append(fn)
+    for item in payload["data"]:
+        path = object_for(item)
+        if path is None:
+            raise SystemExit(f"{item['name']} has no assembly object")
+        _blob, data = text_of(path, item["entry"], item["end"])
+        if data != rom[item["entry"]:item["end"]]:
+            raise SystemExit(f"{item['name']}: data object does not match flash")
+        place(image, covered, item["entry"], data, item["name"])
+    missing = [
+        fn["name"]
+        for fn in payload["functions"]
+        if sum(covered[fn["entry"]:fn["end"]]) != fn["end"] - fn["entry"]
+    ]
+    if missing or len(c_matched) + len(asm_matched) != len(payload["functions"]):
+        raise SystemExit("a code range was not placed from a built object: " + ", ".join(missing))
+    for index, flag in enumerate(covered):
+        if not flag:
+            image[index] = rom[index]
+    digest = hashlib.sha1(image).hexdigest()
+    IMAGE.parent.mkdir(parents=True, exist_ok=True)
+    IMAGE.write_bytes(image)
+    c_bytes = sum(fn["end"] - fn["entry"] for fn in c_matched)
+    asm_bytes = sum(fn["end"] - fn["entry"] for fn in asm_matched)
+    print(f"compiler: Hitachi SHC 5.1 Release 04, {PIN_FLAGS}")
+    print("not re-flagged: -nospeed, -speed, -size, -rtnext, and -cpu=sh4 stay off")
     print(
         "matched C: "
-        + ", ".join(f"{name} {size} bytes at 0x{origin:x}" for name, origin, size in c_matched)
+        + ", ".join(f"{fn['name']} {fn['end'] - fn['entry']} bytes at 0x{fn['entry']:x}" for fn in c_matched)
     )
-    c_noun = "function" if len(c_matched) == 1 else "functions"
-    print(f"matched C total: {len(c_matched)} {c_noun}, {c_bytes} bytes")
-    print("matched C was linked with SHC; make progress does not re-run the compiler")
+    noun = "function" if len(c_matched) == 1 else "functions"
+    print(f"matched C total: {len(c_matched)} {noun}, {c_bytes} bytes")
     print(
         "byte-identical assembly: "
-        + ", ".join(f"{name} {size} bytes at 0x{origin:x}" for name, origin, size in matched)
+        + ", ".join(f"{fn['name']} {fn['end'] - fn['entry']} bytes at 0x{fn['entry']:x}" for fn in asm_matched)
     )
-    print(f"byte-identical assembly total: {len(matched)} functions, {matched_bytes} bytes")
+    print(f"byte-identical assembly total: {len(asm_matched)} functions, {asm_bytes} bytes")
+    print("unmatched code: 0 functions, 0 bytes")
     print(
-        f"unmatched code: {len(code) - len(matched) - len(c_matched)} functions, "
-        f"{code_bytes - matched_bytes - c_bytes} bytes"
+        f"built ELF matches extracted ELF for {len(c_matched) + len(asm_matched)} code units"
     )
-    print(f"split: asm {asm_bytes} bytes, compiled {compiled_bytes} bytes, data listed separately")
-    print("objdiff complete: false on every unit")
-    for name in ("poll_bit", "copy_words", "mix_shifts"):
-        built = (ROOT / "build/asm/boot" / f"{name}.o").read_bytes()
-        expected = (ROOT / "expected/boot" / f"{name}.o").read_bytes()
-        if built != expected:
-            raise SystemExit(f"{name}: built object is not the extracted object")
-    print("built ELF matches extracted ELF for the three assembly units")
+    print(f"image sha1: {digest}")
+    if digest != SHA1:
+        raise SystemExit(f"image sha1 {digest} does not match bios0")
+    config = json.loads((ROOT / "objdiff.json").read_text())
+    open_units = [unit["name"] for unit in config["units"] if not unit["metadata"].get("complete")]
+    if open_units:
+        raise SystemExit("objdiff complete is false for " + ", ".join(open_units))
+    print(f"objdiff complete: true on {len(config['units'])} units")
     if not CLI.is_file():
-        print("objdiff-cli is not installed at tools/bin/objdiff-cli")
-        return
+        raise SystemExit("objdiff-cli is not installed at tools/bin/objdiff-cli")
     report = subprocess.run(
         [str(CLI), "report", "generate", "-p", str(ROOT), "-f", "json"],
         check=False,
@@ -73,10 +141,17 @@ def main():
         text=True,
     )
     if report.returncode != 0:
-        print("objdiff report failed")
-        print(report.stderr.strip())
-        return
-    print("objdiff report ran. The percent is not used. See docs/objdiff.md.")
+        raise SystemExit("objdiff report failed\n" + report.stderr.strip())
+    body = json.loads(report.stdout)
+    total = float(body["measures"]["matched_code_percent"])
+    if total != 100.0:
+        raise SystemExit(f"objdiff matched code is {total}%")
+    for unit in body["units"]:
+        percent = float(unit["measures"].get("matched_code_percent", 0))
+        if percent != 100.0 or not unit["metadata"].get("complete"):
+            raise SystemExit(f"{unit['name']}: objdiff {percent}% complete={unit['metadata'].get('complete')}")
+    print("objdiff report: 100% matched code, complete true on every unit")
+    print("objdiff percent is not the grader. The byte check above is.")
 
 
 if __name__ == "__main__":

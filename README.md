@@ -8,22 +8,16 @@ The ROM images are not in this repo. A local bios0 is checked against SHA-1 `b4c
 
 ## Matching status
 
-Matched C is `FUN_09e34`, 28 bytes at `0x9E34`. The compiler is pinned: Hitachi SHC 5.1 Release 04, `-cpu=sh3 -endian=little -optimize=1`. `src/services.c` also holds service functions whose compiled schedules match the flash. The large functions around them are not reproduced, so this tree does not yet link back to the image. See `docs/compiler.md`.
+Matched C is `FUN_09e34`, 28 bytes at `0x9E34`. The compiler is pinned: Hitachi SHC 5.1 Release 04, `-cpu=sh3 -endian=little -optimize=1`. The build links that function with `$G0` at 0 and checks the linked bytes. `src/services.c` also holds schedules that are not linked into the image. See `docs/compiler.md`.
 
-`asm/functions.txt` is the split. Boot code below `0xA00` is handwritten assembly. The cluster from `0x9E34` to `0xA49C` is the ABI-shaped code (`sts.l pr,@-r15`, `mov.l r14,@-r15`, and real `bsr`). There is no such prologue at or past `0xA6A0`. `0x9CDC` is a `bsr` target whose bytes are zero, so it is data. `0xB090` and `0xCED8` are `sts.l pr,@-r6` inside repeating data, not functions.
+Every other code range is checked assembly. `make` places those bytes, plus the linked `FUN_09e34` bytes, and copies the ROM only for addresses no object covers (font, tables, padding). Holes at `0x9CDC` and `0x9D52`, and the 12-byte footer, keep their original bytes. The reconstructed image SHA-1 is the bios0 digest above. Unmatched code is 0 bytes.
 
-Three boot routines are byte-identical assembly, checked against the flash bytes:
+`asm/functions.txt` is the split. The cluster from `0x9E34` to `0xA49C` is the ABI-shaped code (`sts.l pr,@-r15`, `mov.l r14,@-r15`, and real `bsr`). There is no such prologue at or past `0xA6A0`. `0x9CDC` is a `bsr` target whose bytes are zero, so it is data. `0xB090` and `0xCED8` are `sts.l pr,@-r6` inside repeating data, not functions.
 
-| Unit | File offset | Bytes, including the pool |
-| --- | --- | --- |
-| `mix_shifts` | `0x318` | 56 |
-| `copy_words` | `0x46C` | 24 |
-| `poll_bit` | `0x97C` | 32 |
-
-`reset`, `boot`, and `program_bootrom` stay original bytes. Nothing is marked `complete` in `objdiff.json`. objdiff 3.8.2 disassembles SuperH as big-endian, so its percent is not the gate for this image. See `docs/objdiff.md`.
+objdiff 3.8.2 disassembles SuperH as big-endian, so its percent is not the gate for this image. `complete` is set from the byte check. See `docs/objdiff.md`.
 
 ```
 make
 ```
 
-That refreshes the split, assembles the three units, writes `objdiff.json`, and prints the three progress numbers.
+That refreshes the split, assembles every unit, links `FUN_09e34`, writes `objdiff.json`, and fails unless the image matches.

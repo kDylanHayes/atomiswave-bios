@@ -1,0 +1,57 @@
+! hole_09d52
+! Original flash bytes. Not a recoverable function.
+
+        .org    0x9d52
+        .global hole_09d52
+hole_09d52:
+        .word   0xffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+hole_09db8:
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff
+        .long   0xffffffff

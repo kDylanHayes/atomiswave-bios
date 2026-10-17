@@ -366,14 +366,33 @@ def _parse_operand(text):
     low = raw.lower()
     if low.startswith("#"):
         return ("imm", _parse_num(low[1:]))
+    if low == "@(r0,gbr)":
+        return ("r0gbr",)
+    if low.startswith("@(") and low.endswith(")"):
+        left, right = [part.strip() for part in low[2:-1].split(",", 1)]
+        if left == "gbr":
+            return ("gbr", _parse_num(right))
+        if right == "gbr":
+            return ("gbr", _parse_num(left))
+        if left in REGS and right in REGS:
+            return ("idx", REGS[left], REGS[right])
+        if right in REGS:
+            return ("disp", _parse_num(left), REGS[right])
+        if left in REGS:
+            return ("disp", _parse_num(right), REGS[left])
+        raise ValueError(f"bad memory operand {raw}")
     if low.startswith("@-r"):
         return ("pre", REGS[low[2:]])
     if low.startswith("@r") and low.endswith("+"):
         return ("post", REGS[low[1:-1]])
+    if low.startswith("@+r"):
+        return ("post", REGS[low[2:]])
     if low.startswith("@r"):
         return ("at", REGS[low[1:]])
     if low in REGS:
         return ("reg", REGS[low])
+    if low in ("sr", "gbr", "vbr", "pr", "mach", "macl"):
+        return ("creg", low)
     if low.startswith("0x") or low[:1].isdigit() or low.startswith("-"):
         return ("imm", _parse_num(low))
     return ("label", raw)
@@ -382,7 +401,22 @@ def _parse_operand(text):
 def _split_ops(text):
     if not text.strip():
         return []
-    return [_parse_operand(part) for part in text.split(",")]
+    parts = []
+    buf = []
+    depth = 0
+    for ch in text:
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        elif ch == "," and depth == 0:
+            parts.append("".join(buf))
+            buf = []
+            continue
+        buf.append(ch)
+    if buf:
+        parts.append("".join(buf))
+    return [_parse_operand(part) for part in parts]
 
 
 def _disp8(value, signed):
@@ -428,10 +462,13 @@ def _encode(op, args, pc, labels):
         return 0xE000 | (reg(args[1]) << 8) | (imm & 0xFF)
     if op == "mov" and args[0][0] == "reg":
         return 0x6003 | (reg(args[1]) << 8) | (reg(args[0]) << 4)
-    if op == "mov.l" and args[0][0] == "label":
-        disp_bytes = lab(args[0]) - ((pc & ~3) + 4)
+    if op == "mov.l" and args[0][0] in ("label", "imm"):
+        # A label is a pool inside this object. An address is a pool that
+        # lives in another range; the displacement is still from this pc.
+        target = lab(args[0]) if args[0][0] == "label" else args[0][1]
+        disp_bytes = target - ((pc & ~3) + 4)
         if disp_bytes % 4:
-            raise ValueError(f"mov.l pool at {lab(args[0]):#x} is not 4-byte aligned from {pc:#x}")
+            raise ValueError(f"mov.l pool at {target:#x} is not 4-byte aligned from {pc:#x}")
         disp = disp_bytes // 4
         if not 0 <= disp <= 255:
             raise ValueError(f"mov.l displacement {disp} does not fit")
@@ -451,6 +488,10 @@ def _encode(op, args, pc, labels):
         return 0x7000 | (reg(args[1]) << 8) | (imm & 0xFF)
     if op == "add" and args[0][0] == "reg":
         return 0x300C | (reg(args[1]) << 8) | (reg(args[0]) << 4)
+    if op == "tst" and args[0][0] == "imm":
+        if reg(args[1]) != 0:
+            raise ValueError("tst #imm only writes r0")
+        return 0xC800 | (args[0][1] & 0xFF)
     if op == "tst":
         return 0x2008 | (reg(args[1]) << 8) | (reg(args[0]) << 4)
     if op == "xor" and args[0][0] == "imm":
@@ -473,11 +514,179 @@ def _encode(op, args, pc, labels):
         return 0x200B | (reg(args[1]) << 8) | (reg(args[0]) << 4)
     if op == "shld":
         return 0x400D | (reg(args[1]) << 8) | (reg(args[0]) << 4)
-    if op in ("bf", "bt"):
-        disp = lab(args[0]) - (pc + 4)
-        opcode = 0x8B00 if op == "bf" else 0x8900
-        return opcode | _disp8(disp, signed=True)
+    if op in ("bf", "bt", "bf/s", "bt/s", "bra", "bsr"):
+        if args[0][0] == "label":
+            target = lab(args[0])
+        elif args[0][0] == "imm":
+            target = args[0][1]
+        else:
+            raise ValueError(f"{op} expected a label or address")
+        disp_bytes = target - (pc + 4)
+        if disp_bytes % 2:
+            raise ValueError(f"{op} displacement {disp_bytes} is not even")
+        disp = disp_bytes // 2
+        if op in ("bra", "bsr"):
+            if not -2048 <= disp <= 2047:
+                raise ValueError(f"{op} displacement {disp} does not fit")
+            base = 0xA000 if op == "bra" else 0xB000
+            return base | (disp & 0xFFF)
+        if not -128 <= disp <= 127:
+            raise ValueError(f"{op} displacement {disp} does not fit")
+        bases = {"bt": 0x8900, "bf": 0x8B00, "bt/s": 0x8D00, "bf/s": 0x8F00}
+        return bases[op] | (disp & 0xFF)
+    if op == "mov.w" and args[0][0] in ("label", "imm"):
+        target = lab(args[0]) if args[0][0] == "label" else args[0][1]
+        disp_bytes = target - (pc + 4)
+        if disp_bytes % 2:
+            raise ValueError(f"mov.w pool at {target:#x} is not aligned from {pc:#x}")
+        disp = disp_bytes // 2
+        if not -128 <= disp <= 127:
+            raise ValueError(f"mov.w displacement {disp} does not fit")
+        return 0x9000 | (reg(args[1]) << 8) | (disp & 0xFF)
+    encoded = _encode_rest(op, args)
+    if encoded is not None:
+        return encoded
     raise ValueError(f"assembler does not implement {op}")
+
+
+def _rn(node):
+    if node[0] in ("reg", "at", "pre", "post"):
+        return node[1]
+    raise ValueError(f"expected a register, got {node}")
+
+
+def _encode_rest(op, args):
+    """Encodings added for the lifted flash ranges."""
+
+    def n_of(node):
+        return _rn(node)
+
+    single = {
+        "shll": 0x4000,
+        "shlr": 0x4001,
+        "shll2": 0x4008,
+        "shlr2": 0x4009,
+        "shll8": 0x4018,
+        "shlr8": 0x4019,
+        "shll16": 0x4028,
+        "shlr16": 0x4029,
+        "cmp/pz": 0x4011,
+        "cmp/pl": 0x4015,
+        "jsr": 0x400B,
+        "jmp": 0x402B,
+        "bsrf": 0x0003,
+    }
+    if op in single and len(args) == 1:
+        return single[op] | (n_of(args[0]) << 8)
+    pair = {
+        "cmp/eq": 0x3000,
+        "cmp/hs": 0x3002,
+        "cmp/ge": 0x3003,
+        "cmp/hi": 0x3006,
+        "cmp/gt": 0x3007,
+        "sub": 0x3008,
+        "extu.b": 0x600C,
+        "extu.w": 0x600D,
+        "exts.b": 0x600E,
+        "exts.w": 0x600F,
+        "swap.b": 0x6008,
+        "swap.w": 0x6009,
+        "negc": 0x600A,
+        "neg": 0x600B,
+        "mul.l": 0x0007,
+    }
+    if op in pair and len(args) == 2 and args[0][0] in ("reg", "at") and args[1][0] == "reg":
+        return pair[op] | (n_of(args[1]) << 8) | (n_of(args[0]) << 4)
+    if op == "cmp/eq" and args[0][0] == "imm":
+        if n_of(args[1]) != 0:
+            raise ValueError("cmp/eq #imm only writes r0")
+        return 0x8800 | (args[0][1] & 0xFF)
+    creg_code = {"sr": 0, "gbr": 1, "vbr": 2}
+    if op == "stc" and args[0][0] == "creg":
+        which = creg_code[args[0][1]]
+        return (which << 4) | 0x0002 | (n_of(args[1]) << 8)
+    if op == "ldc" and args[1][0] == "creg":
+        which = creg_code[args[1][1]]
+        return 0x400E | (which << 4) | (n_of(args[0]) << 8)
+    if op == "sts.l" and args[0] == ("creg", "pr") and args[1][0] == "pre":
+        return 0x4022 | (args[1][1] << 8)
+    if op == "lds.l" and args[0][0] == "post" and args[1] == ("creg", "pr"):
+        return 0x4026 | (args[0][1] << 8)
+    if op in ("sleep", "clrmac", "rte", "sett"):
+        return {"sleep": 0x001B, "clrmac": 0x0028, "rte": 0x002B, "sett": 0x0018}[op]
+    gbr_store = {"mov.b": 0xC000, "mov.w": 0xC100, "mov.l": 0xC200}
+    gbr_load = {"mov.b": 0xC400, "mov.w": 0xC500, "mov.l": 0xC600}
+    gbr_scale = {"mov.b": 1, "mov.w": 2, "mov.l": 4}
+    if op in gbr_store and len(args) == 2 and args[1][0] == "gbr":
+        if n_of(args[0]) != 0:
+            raise ValueError(f"{op} through gbr only uses r0")
+        scale = gbr_scale[op]
+        disp = args[1][1]
+        if disp % scale:
+            raise ValueError(f"{op} gbr displacement {disp} is not aligned")
+        return gbr_store[op] | (disp // scale)
+    if op in gbr_load and len(args) == 2 and args[0][0] == "gbr":
+        if n_of(args[1]) != 0:
+            raise ValueError(f"{op} through gbr only uses r0")
+        scale = gbr_scale[op]
+        disp = args[0][1]
+        if disp % scale:
+            raise ValueError(f"{op} gbr displacement {disp} is not aligned")
+        return gbr_load[op] | (disp // scale)
+    byte_gbr = {"or.b": 0xCF00, "and.b": 0xCD00, "xor.b": 0xCE00, "tst.b": 0xCC00}
+    if op in byte_gbr and args[1][0] == "r0gbr":
+        return byte_gbr[op] | (args[0][1] & 0xFF)
+    if op == "mov.l" and args[0][0] == "disp" and args[1][0] == "reg":
+        disp, rm = args[0][1], args[0][2]
+        if disp % 4:
+            raise ValueError(f"mov.l displacement {disp} is not aligned")
+        return 0x5000 | (n_of(args[1]) << 8) | (rm << 4) | (disp // 4)
+    if op == "mov.l" and args[0][0] == "reg" and args[1][0] == "disp":
+        disp, rn = args[1][1], args[1][2]
+        if disp % 4:
+            raise ValueError(f"mov.l displacement {disp} is not aligned")
+        return 0x1000 | (rn << 8) | (n_of(args[0]) << 4) | (disp // 4)
+    if op == "mov.l" and args[0][0] == "idx":
+        return 0x000E | (n_of(args[1]) << 8) | (args[0][2] << 4)
+    if op == "mov.l" and args[1][0] == "idx":
+        return 0x0006 | (args[1][2] << 8) | (n_of(args[0]) << 4)
+    if op == "mov.b" and args[0][0] == "idx":
+        return 0x000C | (n_of(args[1]) << 8) | (args[0][2] << 4)
+    if op == "mov.b" and args[1][0] == "idx":
+        return 0x0004 | (args[1][2] << 8) | (n_of(args[0]) << 4)
+    if op == "mov.w" and args[0][0] == "idx":
+        return 0x000D | (n_of(args[1]) << 8) | (args[0][2] << 4)
+    if op == "mov.w" and args[1][0] == "idx":
+        return 0x0005 | (args[1][2] << 8) | (n_of(args[0]) << 4)
+    width = {"mov.b": 0, "mov.w": 1, "mov.l": 2}
+    if op in width and args[0][0] == "reg" and args[1][0] == "at":
+        return 0x2000 | (width[op] << 0) | (args[1][1] << 8) | (n_of(args[0]) << 4)
+    if op in width and args[0][0] == "at" and args[1][0] == "reg":
+        return 0x6000 | width[op] | (n_of(args[1]) << 8) | (args[0][1] << 4)
+    if op in width and args[0][0] == "reg" and args[1][0] == "pre":
+        return 0x2004 | width[op] | (args[1][1] << 8) | (n_of(args[0]) << 4)
+    if op in width and args[0][0] == "post" and args[1][0] == "reg":
+        return 0x6004 | width[op] | (n_of(args[1]) << 8) | (args[0][1] << 4)
+    # mov.b/mov.w r0, @(disp, rn) and the matching loads. disp is in bytes.
+    r0_store = {"mov.b": (0x8000, 1), "mov.w": (0x8100, 2)}
+    r0_load = {"mov.b": (0x8400, 1), "mov.w": (0x8500, 2)}
+    if op in r0_store and args[0][0] == "reg" and args[1][0] == "disp":
+        base, scale = r0_store[op]
+        if n_of(args[0]) != 0:
+            raise ValueError(f"{op} @(disp, rn) only stores r0")
+        disp, rn = args[1][1], args[1][2]
+        if disp % scale:
+            raise ValueError(f"{op} displacement {disp} is not aligned")
+        return base | (rn << 4) | (disp // scale)
+    if op in r0_load and args[0][0] == "disp" and args[1][0] == "reg":
+        base, scale = r0_load[op]
+        if n_of(args[1]) != 0:
+            raise ValueError(f"{op} @(disp, rn) only loads r0")
+        disp, rm = args[0][1], args[0][2]
+        if disp % scale:
+            raise ValueError(f"{op} displacement {disp} is not aligned")
+        return base | (rm << 4) | (disp // scale)
+    return None
 
 
 def assemble(text, origin=None):
@@ -649,6 +858,27 @@ def write_elf(text, symbol, align=2):
     blob[sym_off:sym_off + len(symbols)] = symbols
     blob[shoff:shoff + len(headers)] = headers
     return bytes(blob)
+
+
+def elf_text(blob):
+    """Return the .text section of an ELF32 object this tree writes."""
+    if blob[:4] != b"\x7fELF":
+        raise ValueError("not an ELF")
+    e_shoff, = struct.unpack_from("<I", blob, 32)
+    e_shentsize, e_shnum, e_shstrndx = struct.unpack_from("<HHH", blob, 46)
+
+    def shdr(index):
+        off = e_shoff + index * e_shentsize
+        return struct.unpack_from("<IIIIIIIIII", blob, off)
+
+    shstr_off, shstr_size = shdr(e_shstrndx)[4], shdr(e_shstrndx)[5]
+    names = blob[shstr_off:shstr_off + shstr_size]
+    for index in range(e_shnum):
+        name_off, _typ, _flags, _addr, offset, size, _link, _info, _align, _entsize = shdr(index)
+        name = names[name_off:].split(b"\0", 1)[0]
+        if name == b".text":
+            return blob[offset:offset + size]
+    raise ValueError("ELF has no .text section")
 
 
 def check_against_rom(origin, data, rom):

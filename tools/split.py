@@ -40,13 +40,10 @@ NAMES = {
     0x97C: "poll_bit",
     0x99C: "blit_glyphs",
 }
-# Spans include the trailing literal pool. These are the first assembly units.
+# Spans include the trailing literal pool. These three were the first
+# handwritten units and must stay kind asm at these ends.
 REQUIRED = {0x318: 0x350, 0x46C: 0x484, 0x97C: 0x99C}
-SOURCES = {
-    "mix_shifts": "asm/boot/mix_shifts.s",
-    "copy_words": "asm/boot/copy_words.s",
-    "poll_bit": "asm/boot/poll_bit.s",
-}
+MATCHED_C = "FUN_09e34"
 TOP = object()
 CONTROL = {
     "bra", "bsr", "bt", "bf", "bt/s", "bf/s", "jmp", "jsr", "rts", "rte", "braf", "bsrf",
@@ -529,9 +526,12 @@ def build(rom):
     for fn in functions:
         fn["kind"] = kind[fn["entry"]]
         fn["category"] = "services" if fn["kind"] == "compiled" else "boot"
-        source = SOURCES.get(fn["name"])
-        if source and fn["entry"] in REQUIRED and REQUIRED[fn["entry"]] == fn["end"]:
-            fn["source"] = source
+        if fn["name"] == MATCHED_C:
+            fn["matched_c"] = True
+            fn["object"] = "build/services/FUN_09e34.o"
+        else:
+            folder = "boot" if fn["category"] == "boot" else "services"
+            fn["source"] = f"asm/{folder}/{fn['name']}.s"
         fn.pop("compiled_signal")
     data = []
     covered_until = -1
@@ -554,6 +554,8 @@ def build(rom):
         "kind": "data",
         "note": "12-byte footer. bios1 differs at 0x1a003, 0x1a004, 0x1a006, 0x1a007, 0x1a008, 0x1a009",
     })
+    for item in data:
+        item["source"] = f"asm/data/{item['name']}.s"
     notes = notes_for(rom, functions, found.holes, found.refs)
     return functions, data, calls, notes
 
@@ -630,9 +632,9 @@ def check(functions, notes):
     for entry in (0x0, 0x5C, 0x7A4):
         fn = by_entry.get(entry)
         if fn is None:
-            problems.append(f"missing original-bytes unit at 0x{entry:x}")
-        elif fn.get("source"):
-            problems.append(f"{fn['name']} should stay original bytes")
+            problems.append(f"missing boot unit at 0x{entry:x}")
+        elif not fn.get("source"):
+            problems.append(f"{fn['name']} has no assembly source")
     if not any("0x9CDC is a bsr target" in note for note in notes):
         problems.append("0x9CDC hole was not recorded")
     if any("WARNING" in note for note in notes):

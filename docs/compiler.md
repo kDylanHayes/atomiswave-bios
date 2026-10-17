@@ -19,13 +19,17 @@ disp 0; the linker fills it. A `bsr` to a static function in the same
 file is resolved while compiling. An extern is `mov.l` plus `jsr`.
 
 objdiff 3.8.2 disassembles SuperH as big-endian, so its percent is not
-the grader. The grader is the linked halfwords against the flash. Nothing
-is marked `complete`.
+the grader. The grader is the linked or assembled halfwords against the
+flash. `complete` is set only after that byte check.
 
-The compiler is not in this repo. Matched C is `FUN_09e34`, 28 bytes.
-`src/services.c` also holds schedules for eight more functions. Linking
-that whole file does not yet reproduce the flash, because several
-callees are still missing and a `bsr` displacement depends on their sizes.
+The compiler is not in this repo. Matched C is `FUN_09e34`, 28 bytes,
+linked with `$G0` at 0. `src/services.c` also holds schedules for eight
+more functions. Linking that whole file does not reproduce the flash.
+The pin still caches a repeated 0 in a callee-saved register, hoists the
+GBR install above the first push, and keeps a promoted value across a
+call. Those ranges are checked assembly in `asm/services/`. They are not
+matched C. `-nospeed`, `-speed`, `-size`, `-rtnext`, and `-cpu=sh4` stay
+off.
 
 ## What matched
 
@@ -73,10 +77,12 @@ with `$G0` at 0, is the 28 flash bytes at `0x9E34`. An `||` chain or a
 that `return`s the constant directly compiles as `rts` with that
 constant in `r0`, and the flash returns through `r4`.
 
-## What does not match yet
+## Why the other service bodies are assembly
 
 `FUN_09e68`, `FUN_09fbc`, `FUN_0a116`, `FUN_0a144`, `FUN_0a1f4`, and
-`FUN_0a3a0` are not reproduced.
+`FUN_0a3a0` do not match under the pin. Their flash bytes are the
+assembly in `asm/services/`. The notes below are why that C was not
+promoted.
 
 `FUN_0a3a0` uses the same `switch` shape for the 0/1/2/5/6/11/16 test.
 A standalone `switch` emits plain `bt` and the flash displacements
@@ -87,14 +93,72 @@ cannot share the flash pool `0x8C0010F0`. Constant 0 is cached in
 
 `#pragma global_register(g8=R8,g9=R9,g10=R10,g11=R11,g12=R12,g13=R13)`
 reserves those registers and `FUN_09e34` still matches. Zeros become
-`mov #0`, and the prologue no longer saves `r13`. What remains is
-order: the flash pushes `r14` and then tests the argument; SHC tests
-first. The flash epilogue is `lds.l pr`, then `mov r14,r0`; SHC writes
-the `mov` first. `-nospeed` and `-size` do not swap either pair.
+`mov #0`, and the prologue no longer saves `r13`. Under
+`#pragma global_register` the test still comes before the `r14` push.
+The shape below does not need that pragma. The flash epilogue is
+`lds.l pr`, then `mov r14,r0`; SHC writes the `mov` first.
+`-nospeed` and `-size` do not swap that pair.
 `FUN_09fbc` and `FUN_0a1f4` use `r8`–`r14`, so that pragma cannot cover
 a translation unit that contains them. Folding the third call into
 `&&` removes the stack spill and emits `tst r0,r0`. The flash is
 `mov r0,r4` / `tst r4,r4`. Naming that return brings the spill back.
+
+The prologue is reproducible without `#pragma regsave`. Assign 1 to
+the result before the test, call two different functions from the
+arms, and change the result after those calls:
+
+```
+mov.l r14,@-r15
+tst r4,r4
+sts.l pr,@-r15
+bf/s
+mov #1,r14
+```
+
+Those are the first five halfwords at `0xA3A0`. The same assignment
+written inside both arms tests `r4` before the push and keeps the 1 in
+a caller-saved register. A result that stays 1 is rematerialized in
+the `rts` delay and never saves `r14`. The epilogue of this shape is
+still `mov r14,r0` before `lds.l pr`. The flash pops `pr` first.
+
+The full body does not keep those five halfwords. The result starts at
+1, the arms call different externs, and those returns change the
+result. A nested `if (ret == 0) { if (FUN_09e34() == -1) ... }` changes
+it again. SHC still caches 0 in `r13` and does not save `r12`. The
+test is before the `r14` push, and the `bf/s` delay is `mov #0,r13`.
+
+That nested test is the flash third call: `mov r0,r4` / `tst r4,r4` /
+plain `bf` / `bsr` / `nop`, and it does not spill. With `r13` saved,
+this body pops `pr` before `mov r14,r0`, then pops `r13`, and the
+`rts` delay pops `r14`. The flash has that `lds` order and no `r13`
+pop. The 0/1/2/5/6/11/16 `bt` displacements still match. A zero store
+is `mov r13,r0` or `mov r13,r14`.
+
+`FUN_09e68` was checked against bios0, not the Ghidra file. That file
+misses the `0x8C000000` GBR install, the `or.b #1,@(r0,gbr)` at
+GBR+38, and the call through the `0x9D52` hole. With the service calls
+compiled as `bsr`, and with every `s = 0` and `s = -1` sharing one
+tail, the case bodies follow the flash: `(unsigned)lo.l48 > 0` is
+`cmp/hi` against a zero register, `lo.b38 |= 1` is `mov #38,r0` /
+`or.b #1,@(r0,gbr)`, `lo.l76 == 0x80` is a pool word, and the
+`FUN_0a3a0(0)` result is `cmp/eq #1` / `bf/s` / `mov r0,r4` /
+`tst r4,r4`. Only `r14` and `r13` are saved. Repeating the stores
+instead of sharing the tails caches 0 in `r13` and -1 in `r11`, and
+the address of an extern called more than once occupies another
+callee-saved register.
+
+On that shared-tail candidate, `stc gbr,r3` is still hoisted in front
+of the `r14` push. The same install in a small function pushes `r14`
+first, then `stc gbr,r3`, then the `0x8C000000` literal, then `r13`,
+then `pr`. That is the flash order. The promoted state is kept in
+`r13` across the opening call. The flash uses `r3` for `cmp/pz` and
+recomputes `exts.w r14,r0` after the call. Giving the promotion its
+own `int` spills that `int` across the call instead of recomputing
+from `r14`. `-nospeed` and `-size` do not change either choice. The
+clamp is `exts.w` of `r14`, `mov.w` of GBR+146, `cmp/ge`, with no
+`exts.w r0,r0`. A named short limit copies the loaded word and extends
+the copy. The return reuses the `cmp/pz` value. The flash extends
+`r14` again between the old-GBR reload and `ldc`.
 
 The decrement in flash is `extu.w r0,r0`, `tst r0,r0`, a reload, then
 pool `0x0000FFFF` added into `r0`. A named unsigned temporary of a
@@ -131,7 +195,10 @@ byte-identical: `poll_bit`, `copy_words`, and `mix_shifts`.
 - `-optimize=0`: delay slots stay `nop`. The flash fills some of them.
 - `-nospeed`, `-speed`, and `-size` on top of `-optimize=1`: `FUN_09e34`
   still matches, and none of them removes the `r13` zero cache or the
-  `extu.w r0,r4` decrement. The pin stays `-optimize=1` alone.
+  `extu.w r0,r4` decrement. They also leave the `FUN_09e68` promotion
+  in a callee-saved register and do not emit the redundant
+  `exts.w r0,r0` after `mov.w @(disp,gbr),r0`. The pin stays
+  `-optimize=1` alone.
 - `-rtnext`: `extu.w r0,r0` appears only in the delay slot of an
   `unsigned short` return. It does not fix the inlined decrement.
 - `#pragma regsave`: saves `r8`–`r14` plus `mach` and `macl`. The

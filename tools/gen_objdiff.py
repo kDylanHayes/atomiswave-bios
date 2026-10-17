@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Write expected ELF objects and objdiff.json from asm/map.json.
 
-complete stays false. objdiff 3.8.2 disassembles SuperH as big-endian, so a
-100% report on these little-endian objects is not a match. See docs/objdiff.md.
+complete is true only when the built object .text already matches the flash
+range. objdiff 3.8.2 disassembles SuperH as big-endian, so the percent is
+not the grader. See docs/objdiff.md.
 """
 
 from __future__ import annotations
@@ -37,17 +38,31 @@ def main():
         target = ROOT / "expected" / fn["category"] / f"{fn['name']}.o"
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(blob)
+        if fn.get("object"):
+            base = fn["object"]
+        elif fn.get("source", "").endswith(".s"):
+            base = "build/" + fn["source"][:-2] + ".o"
+        else:
+            base = None
+        complete = False
+        if base:
+            built = ROOT / base
+            if built.is_file():
+                complete = sh4.elf_text(built.read_bytes()) == data
         unit = {
             "name": f"{fn['category']}/{fn['name']}",
             "target_path": str(target.relative_to(ROOT)),
             "metadata": {
-                "complete": False,
+                "complete": complete,
                 "progress_categories": [fn["category"]],
             },
         }
+        if base:
+            unit["base_path"] = base
         if fn.get("source"):
-            unit["base_path"] = f"build/{fn['source'].replace('.s', '.o')}"
             unit["metadata"]["source_path"] = fn["source"]
+        elif fn.get("matched_c"):
+            unit["metadata"]["source_path"] = "src/services.c"
         units.append(unit)
     config = {
         "$schema": "https://raw.githubusercontent.com/encounter/objdiff/main/config.schema.json",

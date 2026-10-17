@@ -1,34 +1,37 @@
 # Atomiswave BIOS matching build.
 # The ROM stays outside the repo. Override ROM if it lives somewhere else.
+# Object recipes are real files. A newer object that no longer matches flash
+# is not rebuilt over, and tools/progress.py rejects it.
 
 ROM ?= $(HOME)/Documents/awbios/bios0.ic23
 PYTHON ?= python3
 
-.PHONY: all split asm expected config probe progress
+ASM_SRCS := $(wildcard asm/boot/*.s) $(wildcard asm/services/*.s) $(wildcard asm/data/*.s)
+ASM_OBJS := $(patsubst asm/%.s,build/asm/%.o,$(ASM_SRCS))
+C_OBJ := build/services/FUN_09e34.o
+
+.PHONY: all split probe progress config
 
 all: progress
 
 split:
 	$(PYTHON) tools/split.py $(ROM)
 
-asm: split
-	@mkdir -p build/asm/boot
-	$(PYTHON) tools/as_sh.py asm/boot/mix_shifts.s -o build/asm/boot/mix_shifts.o --check $(ROM)
-	$(PYTHON) tools/as_sh.py asm/boot/copy_words.s -o build/asm/boot/copy_words.o --check $(ROM)
-	$(PYTHON) tools/as_sh.py asm/boot/poll_bit.s -o build/asm/boot/poll_bit.o --check $(ROM)
+build/asm/%.o: asm/%.s
+	@mkdir -p $(dir $@)
+	$(PYTHON) tools/as_sh.py $< -o $@ --check $(ROM)
 
-expected: split
+$(C_OBJ): src/services.c tools/link_matched.py tools/sh4.py
+	@mkdir -p $(dir $@)
+	$(PYTHON) tools/link_matched.py --rom $(ROM) -o $@
+
+config: split $(ASM_OBJS) $(C_OBJ)
 	$(PYTHON) tools/gen_objdiff.py --rom $(ROM)
-
-config: expected
 
 probe:
 	$(PYTHON) tools/probe_compiler.py
 
-progress: asm config probe
+progress: config probe
 	$(PYTHON) tools/progress.py
 
 # objdiff rebuilds one base object with: make <path>
-build/asm/boot/%.o: asm/boot/%.s
-	@mkdir -p $(dir $@)
-	$(PYTHON) tools/as_sh.py $< -o $@ --check $(ROM)
