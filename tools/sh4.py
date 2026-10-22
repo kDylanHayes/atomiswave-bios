@@ -4,9 +4,8 @@
 The decoder covers the integer instructions this image actually uses.
 The assembler accepts a small GNU as subset and emits the same halfwords.
 write_elf wraps those bytes in an ELF32 ET_REL object (EM_SH, EF_SH4)
-with no relocations. objdiff can load that file. An empty relocation
-section is not a match. It is not a substitute for sh-elf-as, and it is
-not evidence that a C compiler matches.
+with no relocations. An empty relocation section is not evidence that a
+C compiler matches. It is not a substitute for sh-elf-as.
 """
 
 from __future__ import annotations

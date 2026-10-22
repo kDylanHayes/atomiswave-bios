@@ -12,16 +12,14 @@ The ROM images are not in this repo. A local bios0 is checked against SHA-1 `b4c
 
 Matched C is `reject_code` (28 bytes at `0x9E34`), `retry_issue` (28 bytes at `0xA354`), and `run_transfer` (48 bytes at `0xA370`). The compiler is pinned: Hitachi SHC 5.1 Release 04, `-cpu=sh3 -endian=little -optimize=1`. The build links those functions and checks the linked bytes. `retry_issue` and `run_transfer` share a unit whose static callees sit at the flash distances. `src/services.c` also holds schedules that are not linked into the image. Field names and the phase machine are in `docs/services.md`. The compiler pin is in `docs/compiler.md`.
 
-Every other code range is checked assembly. `make` places those bytes, plus the linked C bytes, and copies the ROM only for addresses no object covers (font, tables, padding). Holes at `0x9CDC` and `0x9D52`, and the 12-byte footer, keep their original bytes. The reconstructed image SHA-1 is the bios0 digest above. Unplaced code is 0 bytes. `complete` in `objdiff.json` stays false: the objects hold those halfwords and no relocations.
+Every other code range is checked assembly. `make` places those bytes, plus the linked C bytes, and copies the ROM only for addresses no object covers (font, tables, padding). Holes at `0x9CDC` and `0x9D52`, and the 12-byte footer, keep their original bytes. The reconstructed image SHA-1 is the bios0 digest above. Unplaced code is 0 bytes.
 
 `asm/functions.txt` is the split. The cluster from `0x9E34` to `0xA49C` is the ABI-shaped code (`sts.l pr,@-r15`, `mov.l r14,@-r15`, and real `bsr`). There is no such prologue at or past `0xA6A0`. `0x9CDC` is a `bsr` target whose bytes are zero, so it is data. `0xB090` and `0xCED8` are `sts.l pr,@-r6` inside repeating data, not functions.
-
-objdiff 3.8.2 disassembles SuperH as big-endian, so its percent is not the gate for this image. See `docs/objdiff.md`.
 
 ```
 make
 ```
 
-That refreshes the split, assembles every unit, links the three matched functions, writes `objdiff.json`, and fails unless the image matches.
+That refreshes the split, assembles every unit, links the three matched functions, and fails unless the image matches.
 
-A clean clone cannot finish that. `make` needs the local bios0 image at `~/Documents/awbios/bios0.ic23`, the Hitachi tools extracted to `~/Documents/awbios/shc`, the Boxedwine prefix under `~/Documents/awbios/boxedwine`, and the gitignored `tools/bin/objdiff-cli`. The compiler, the ROM, and objdiff are not in this repo.
+A clean clone cannot finish that. `make` needs the local bios0 image at `~/Documents/awbios/bios0.ic23`, the Hitachi tools extracted to `~/Documents/awbios/shc`, and the Boxedwine prefix under `~/Documents/awbios/boxedwine`. The compiler and the ROM are not in this repo.

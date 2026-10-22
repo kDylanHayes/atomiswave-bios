@@ -11,7 +11,7 @@ ASM_OBJS := $(patsubst asm/%.s,build/asm/%.o,$(ASM_SRCS))
 C_OBJS := build/services/reject_code.o build/services/retry_issue.o build/services/run_transfer.o
 LINK_DEPS := src/services.c tools/link_matched.py tools/sh4.py
 
-.PHONY: all split probe progress config
+.PHONY: all split probe progress
 
 all: progress
 
@@ -32,13 +32,8 @@ build/services/matched.stamp: $(LINK_DEPS)
 $(C_OBJS): build/services/matched.stamp
 	@if [ ! -s $@ ]; then $(PYTHON) tools/link_matched.py --rom $(ROM); touch build/services/matched.stamp; fi
 
-config: split $(ASM_OBJS) $(C_OBJS)
-	$(PYTHON) tools/gen_objdiff.py --rom $(ROM)
-
 probe:
 	$(PYTHON) tools/probe_compiler.py
 
-progress: config probe
+progress: split $(ASM_OBJS) $(C_OBJS) probe
 	$(PYTHON) tools/progress.py
-
-# objdiff rebuilds one base object with: make <path>

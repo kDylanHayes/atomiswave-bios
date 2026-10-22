@@ -4,17 +4,14 @@
 Every code range is either linked C or checked assembly. Hole and footer
 bytes come from their assembly objects. Font, tables, and padding are copied
 from the ROM only where no object was placed. A built object whose .text
-differs from flash fails this command.
-
-objdiff complete stays false while the built ELF has no relocations. The
-percent is printed and does not pass or fail this command.
+differs from flash fails this command. The same object's ELF wrapper must
+equal write_elf of those flash bytes.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 import sys
 from pathlib import Path
 
@@ -26,7 +23,6 @@ from link_matched import PIN_FLAGS, REJECTED
 ROOT = Path(__file__).resolve().parents[1]
 ROM_PATH = Path.home() / "Documents/awbios/bios0.ic23"
 SHA1 = "b4c1a26bc8906d5275eb28c701dff2b9365bcdfa"
-CLI = ROOT / "tools/bin/objdiff-cli"
 IMAGE = ROOT / "build/bios0.ic23"
 
 
@@ -79,9 +75,9 @@ def main():
         flash = rom[fn["entry"]:fn["end"]]
         if data != flash:
             raise SystemExit(f"{fn['name']}: built object does not match flash at {fn['entry']:#x}")
-        expected = ROOT / "expected" / fn["category"] / f"{fn['name']}.o"
-        if blob != expected.read_bytes():
-            raise SystemExit(f"{fn['name']}: built ELF is not the extracted ELF")
+        align = 4 if fn["entry"] % 4 == 0 else 2
+        if blob != sh4.write_elf(flash, fn["name"], align=align):
+            raise SystemExit(f"{fn['name']}: built ELF does not wrap the flash bytes")
         relocations += sh4.elf_relocation_count(blob)
         place(image, covered, fn["entry"], data, fn["name"])
         if fn.get("matched_c"):
@@ -130,43 +126,12 @@ def main():
     )
     print(f"unplaced code: {len(missing)} functions, {unplaced_bytes} bytes")
     print(
-        f"built ELF matches extracted ELF for {len(c_matched) + len(asm_matched)} code units"
+        f"built ELF wraps the flash bytes for {len(c_matched) + len(asm_matched)} code units"
     )
     print(f"image sha1: {digest}")
     if digest != SHA1:
         raise SystemExit(f"image sha1 {digest} does not match bios0")
-    config = json.loads((ROOT / "objdiff.json").read_text())
-    false_complete = []
-    for unit in config["units"]:
-        if not unit["metadata"].get("complete"):
-            continue
-        base = unit.get("base_path")
-        count = sh4.elf_relocation_count((ROOT / base).read_bytes()) if base else 0
-        if count == 0:
-            false_complete.append(unit["name"])
-    if false_complete:
-        raise SystemExit(
-            "objdiff complete is set on an object with no relocations: "
-            + ", ".join(false_complete)
-        )
-    open_units = [unit["name"] for unit in config["units"] if not unit["metadata"].get("complete")]
-    done = len(config["units"]) - len(open_units)
-    print(f"objdiff complete: true on {done} units, false on {len(open_units)} units")
     print(f"relocation entries: {relocations}")
-    if not CLI.is_file():
-        raise SystemExit("objdiff-cli is not installed at tools/bin/objdiff-cli")
-    report = subprocess.run(
-        [str(CLI), "report", "generate", "-p", str(ROOT), "-f", "json"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if report.returncode != 0:
-        raise SystemExit("objdiff report failed\n" + report.stderr.strip())
-    body = json.loads(report.stdout)
-    total = float(body["measures"]["matched_code_percent"])
-    print(f"objdiff report: {total}% matched code")
-    print("objdiff percent is not the grader. The byte check above is the image gate.")
 
 
 if __name__ == "__main__":

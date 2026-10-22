@@ -18,9 +18,9 @@ Ver. 6.0A. A GBR displacement is a relocation. The compiler listing shows
 disp 0; the linker fills it. A `bsr` to a static function in the same
 file is resolved while compiling. An extern is `mov.l` plus `jsr`.
 
-objdiff 3.8.2 disassembles SuperH as big-endian, so its percent is not
-the grader. The image gate is the linked or assembled halfwords against
-the flash. `complete` stays false. The byte check does not set it.
+The image gate is the linked or assembled halfwords against the flash,
+then the SHA-1 of the rebuilt image. The objects store those halfwords
+with the displacements already filled in.
 
 The compiler is not in this repo. The local copy is
 `~/Documents/awbios/shc`, extracted from the Katana R9 cab next to
