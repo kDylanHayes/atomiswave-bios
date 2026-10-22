@@ -1,9 +1,11 @@
-! FUN_09e50
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! ram_window_ready at 0x9E50
+! Returns 1 when GBR+100 is 0x8C008000 and GBR+76 is 32. Otherwise 0.
+! The 0x8C008000 literal is at 0x9EFC, inside step_phase.
+! Checked assembly, not matched C.
 
         .org    0x9e50
-        .global FUN_09e50
-FUN_09e50:
+        .global ram_window_ready
+ram_window_ready:
         mov.l @(gbr,100), r0
         mov.l 0x9efc, r3
         cmp/eq r3, r0

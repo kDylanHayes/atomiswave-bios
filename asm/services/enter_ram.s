@@ -1,9 +1,12 @@
-! FUN_0a116
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! enter_ram at 0xA116
+! ORs 0x100000F0 into SR, sets VBR to 0x8C000000, calls 0x8C0006AA,
+! stores 0x8C000728 at GBR+564, writes 8 to 0xA05F6910, ANDs SR with
+! 0xEFFFFF0F, and jumps to 0x8C000768.
+! Checked assembly, not matched C.
 
         .org    0xa116
-        .global FUN_0a116
-FUN_0a116:
+        .global enter_ram
+enter_ram:
         stc sr, r3
         mov.l 0xa1b4, r2
         sts.l pr, @-r15

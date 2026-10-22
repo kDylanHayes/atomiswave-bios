@@ -1,5 +1,10 @@
 ! init_memory
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! File 0x350. Stores constants at 0xA05F74B8, 0xA05F7490, 0xA05F74A0,
+! 0xA05F7000, and 0xA05F7404, then waits while bit 0 of the last word
+! stays set. If the low two bits at 0xA0600280 are clear, it branches
+! to check_header. The other path sets bit 3 of a Holly word and fills
+! a dword run with -1. Pools past this file sit in the next range.
+! Byte-checked assembly, not matched C.
 
         .org    0x350
         .global init_memory
@@ -70,6 +75,10 @@ init_memory:
 .L3cc:
         .long   0xa0600280
 .L3d0:
+        ! The pool for this path is file 0x428 through 0x440, inside
+        ! exc_tlb_miss. Clear the word at 0xA05F8050, store 0x500 next
+        ! to it, force bit 3 on at 0xA05F8048, and fill 0x25800 dwords
+        ! at 0xA5000000 with -1. The last three loads are r1, r2, and r3.
         mov.l 0x428, r1
         mov #0, r0
         mov.l r0, @r1

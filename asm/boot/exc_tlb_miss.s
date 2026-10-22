@@ -1,5 +1,9 @@
 ! exc_tlb_miss
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! File 0x400, the TLB-miss vector. Three jsr @r1. r1 is incoming, not
+! a constant in this range. Each call gets pointer and count arguments
+! from the pool, then the range branches to set_system_bits.
+! The longs at file 0x428 through 0x440 are init_memory's pool.
+! Byte-checked assembly, not matched C.
 
         .org    0x400
         .global exc_tlb_miss
@@ -24,13 +28,13 @@ exc_tlb_miss:
         bra 0x484
         nop
         .word   0x0000
-        .long   0xa05f8050
-        .long   0xa05f8048
-        .long   0xa5000000
-        .long   0x00025800
-        .long   0x0000046c
-        .long   0x00000500
-        .long   0x00001498
+        .long   0xa05f8050 ! 0x428 init_memory clears this word
+        .long   0xa05f8048 ! 0x42C bit 3 is forced on
+        .long   0xa5000000 ! 0x430 filled with -1
+        .long   0x00025800 ! 0x434 dword count of that fill
+        .long   0x0000046c ! 0x438 loaded into r1. File offset of copy_words
+        .long   0x00000500 ! 0x43C loaded into r2
+        .long   0x00001498 ! 0x440 loaded into r3
 .L444:
         .long   0xa503e458
 .L448:

@@ -25,7 +25,7 @@
       "name": "boot/reset",
       "target_path": "expected/boot/reset.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -37,7 +37,7 @@
       "name": "boot/boot",
       "target_path": "expected/boot/boot.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -49,7 +49,7 @@
       "name": "boot/exc_general",
       "target_path": "expected/boot/exc_general.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -61,7 +61,7 @@
       "name": "boot/mix_shifts",
       "target_path": "expected/boot/mix_shifts.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -73,7 +73,7 @@
       "name": "boot/init_memory",
       "target_path": "expected/boot/init_memory.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -85,7 +85,7 @@
       "name": "boot/exc_tlb_miss",
       "target_path": "expected/boot/exc_tlb_miss.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -97,7 +97,7 @@
       "name": "boot/copy_words",
       "target_path": "expected/boot/copy_words.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -109,7 +109,7 @@
       "name": "boot/set_system_bits",
       "target_path": "expected/boot/set_system_bits.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -121,7 +121,7 @@
       "name": "boot/check_header",
       "target_path": "expected/boot/check_header.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -133,7 +133,7 @@
       "name": "boot/exc_interrupt",
       "target_path": "expected/boot/exc_interrupt.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -145,7 +145,7 @@
       "name": "boot/program_bootrom",
       "target_path": "expected/boot/program_bootrom.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -157,7 +157,7 @@
       "name": "boot/poll_bit",
       "target_path": "expected/boot/poll_bit.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -169,7 +169,7 @@
       "name": "boot/blit_glyphs",
       "target_path": "expected/boot/blit_glyphs.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "boot"
         ],
@@ -178,184 +178,184 @@
       "base_path": "build/asm/boot/blit_glyphs.o"
     },
     {
-      "name": "services/FUN_09e34",
-      "target_path": "expected/services/FUN_09e34.o",
+      "name": "services/reject_code",
+      "target_path": "expected/services/reject_code.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
         "source_path": "src/services.c"
       },
-      "base_path": "build/services/FUN_09e34.o"
+      "base_path": "build/services/reject_code.o"
     },
     {
-      "name": "services/FUN_09e50",
-      "target_path": "expected/services/FUN_09e50.o",
+      "name": "services/ram_window_ready",
+      "target_path": "expected/services/ram_window_ready.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_09e50.s"
+        "source_path": "asm/services/ram_window_ready.s"
       },
-      "base_path": "build/asm/services/FUN_09e50.o"
+      "base_path": "build/asm/services/ram_window_ready.o"
     },
     {
-      "name": "services/FUN_09e68",
-      "target_path": "expected/services/FUN_09e68.o",
+      "name": "services/step_phase",
+      "target_path": "expected/services/step_phase.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_09e68.s"
+        "source_path": "asm/services/step_phase.s"
       },
-      "base_path": "build/asm/services/FUN_09e68.o"
+      "base_path": "build/asm/services/step_phase.o"
     },
     {
-      "name": "services/FUN_09fbc",
-      "target_path": "expected/services/FUN_09fbc.o",
+      "name": "services/service_main",
+      "target_path": "expected/services/service_main.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_09fbc.s"
+        "source_path": "asm/services/service_main.s"
       },
-      "base_path": "build/asm/services/FUN_09fbc.o"
+      "base_path": "build/asm/services/service_main.o"
     },
     {
-      "name": "services/FUN_0a116",
-      "target_path": "expected/services/FUN_0a116.o",
+      "name": "services/enter_ram",
+      "target_path": "expected/services/enter_ram.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a116.s"
+        "source_path": "asm/services/enter_ram.s"
       },
-      "base_path": "build/asm/services/FUN_0a116.o"
+      "base_path": "build/asm/services/enter_ram.o"
     },
     {
-      "name": "services/FUN_0a144",
-      "target_path": "expected/services/FUN_0a144.o",
+      "name": "services/quiet_interrupts",
+      "target_path": "expected/services/quiet_interrupts.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a144.s"
+        "source_path": "asm/services/quiet_interrupts.s"
       },
-      "base_path": "build/asm/services/FUN_0a144.o"
+      "base_path": "build/asm/services/quiet_interrupts.o"
     },
     {
-      "name": "services/FUN_0a158",
-      "target_path": "expected/services/FUN_0a158.o",
+      "name": "services/set_hook",
+      "target_path": "expected/services/set_hook.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a158.s"
+        "source_path": "asm/services/set_hook.s"
       },
-      "base_path": "build/asm/services/FUN_0a158.o"
+      "base_path": "build/asm/services/set_hook.o"
     },
     {
-      "name": "services/FUN_0a15e",
-      "target_path": "expected/services/FUN_0a15e.o",
+      "name": "services/ram_call_2",
+      "target_path": "expected/services/ram_call_2.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a15e.s"
+        "source_path": "asm/services/ram_call_2.s"
       },
-      "base_path": "build/asm/services/FUN_0a15e.o"
+      "base_path": "build/asm/services/ram_call_2.o"
     },
     {
-      "name": "services/FUN_0a16a",
-      "target_path": "expected/services/FUN_0a16a.o",
+      "name": "services/ram_call_3",
+      "target_path": "expected/services/ram_call_3.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a16a.s"
+        "source_path": "asm/services/ram_call_3.s"
       },
-      "base_path": "build/asm/services/FUN_0a16a.o"
+      "base_path": "build/asm/services/ram_call_3.o"
     },
     {
-      "name": "services/FUN_0a1d4",
-      "target_path": "expected/services/FUN_0a1d4.o",
+      "name": "services/prime_count68",
+      "target_path": "expected/services/prime_count68.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a1d4.s"
+        "source_path": "asm/services/prime_count68.s"
       },
-      "base_path": "build/asm/services/FUN_0a1d4.o"
+      "base_path": "build/asm/services/prime_count68.o"
     },
     {
-      "name": "services/FUN_0a1da",
-      "target_path": "expected/services/FUN_0a1da.o",
+      "name": "services/phase_until_clear",
+      "target_path": "expected/services/phase_until_clear.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a1da.s"
+        "source_path": "asm/services/phase_until_clear.s"
       },
-      "base_path": "build/asm/services/FUN_0a1da.o"
+      "base_path": "build/asm/services/phase_until_clear.o"
     },
     {
-      "name": "services/FUN_0a1f4",
-      "target_path": "expected/services/FUN_0a1f4.o",
+      "name": "services/scan_list",
+      "target_path": "expected/services/scan_list.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a1f4.s"
+        "source_path": "asm/services/scan_list.s"
       },
-      "base_path": "build/asm/services/FUN_0a1f4.o"
+      "base_path": "build/asm/services/scan_list.o"
     },
     {
-      "name": "services/FUN_0a354",
-      "target_path": "expected/services/FUN_0a354.o",
+      "name": "services/retry_issue",
+      "target_path": "expected/services/retry_issue.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a354.s"
+        "source_path": "src/services.c"
       },
-      "base_path": "build/asm/services/FUN_0a354.o"
+      "base_path": "build/services/retry_issue.o"
     },
     {
-      "name": "services/FUN_0a370",
-      "target_path": "expected/services/FUN_0a370.o",
+      "name": "services/run_transfer",
+      "target_path": "expected/services/run_transfer.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a370.s"
+        "source_path": "src/services.c"
       },
-      "base_path": "build/asm/services/FUN_0a370.o"
+      "base_path": "build/services/run_transfer.o"
     },
     {
-      "name": "services/FUN_0a3a0",
-      "target_path": "expected/services/FUN_0a3a0.o",
+      "name": "services/issue_command",
+      "target_path": "expected/services/issue_command.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "progress_categories": [
           "services"
         ],
-        "source_path": "asm/services/FUN_0a3a0.s"
+        "source_path": "asm/services/issue_command.s"
       },
-      "base_path": "build/asm/services/FUN_0a3a0.o"
+      "base_path": "build/asm/services/issue_command.o"
     }
   ]
 }

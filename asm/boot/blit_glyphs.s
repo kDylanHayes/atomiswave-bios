@@ -1,5 +1,9 @@
 ! blit_glyphs
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! File 0x99C. 16 by 16 glyph blit. Masks a source byte with 0xFF,
+! subtracts 0x20, multiplies by 0x20, and adds the font base at file
+! 0xC98. A set glyph bit stores 0xFFFF. A clear bit stores 0x528A.
+! The row stride is 0x500.
+! Byte-checked assembly, not matched C.
 
         .org    0x99c
         .global blit_glyphs

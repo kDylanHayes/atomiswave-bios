@@ -1,9 +1,11 @@
-! FUN_0a1da
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! phase_until_clear at 0xA1DA
+! Stores r4 at GBR+146, then calls the 0x9CDC hole and step_phase until
+! step_phase returns a value >= 0.
+! Checked assembly, not matched C.
 
         .org    0xa1da
-        .global FUN_0a1da
-FUN_0a1da:
+        .global phase_until_clear
+phase_until_clear:
         mov r4, r0
         sts.l pr, @-r15
         mov.w r0, @(gbr,146)

@@ -1,9 +1,11 @@
-! FUN_0a1f4
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! scan_list at 0xA1F4
+! Walks the byte list in r4 up to the bound in r5. Fills GBR+236..GBR+252
+! and calls run_transfer and retry_issue. Record offsets are in the loads.
+! Checked assembly, not matched C.
 
         .org    0xa1f4
-        .global FUN_0a1f4
-FUN_0a1f4:
+        .global scan_list
+scan_list:
         mov.l r14, @-r15
         mov.l r13, @-r15
         mov.l r12, @-r15
@@ -16,6 +18,9 @@ FUN_0a1f4:
         sts.l pr, @-r15
         add #-4, r15
         mov.l r5, @r15
+        ! Call 0x8C0004D8 with the list pointer. Then store 17, the
+        ! bound, 1, the list pointer, and 0 at GBR+236 through GBR+252
+        ! and call run_transfer.
         jsr r3
         mov r12, r4
         mov r12, r14
@@ -36,6 +41,8 @@ FUN_0a1f4:
         bra .La33e
         nop
 .La232:
+        ! run_transfer returned 0. Call 0x8C000590 with the list pointer.
+        ! A nonzero result returns 0.
         mov.l .La2f4, r2
         jsr r2
         mov r14, r4
@@ -44,6 +51,9 @@ FUN_0a1f4:
         bra .La33e
         nop
 .La240:
+        ! Call hole 0x9CE2 with the list plus 0xA2, add 0x96, and store
+        ! that with command 17. run_transfer again. The walk bound
+        ! becomes the list plus 0x800.
         mov.w .La2e8, r4
         bsr 0x9ce2
         add r14, r4
@@ -68,6 +78,10 @@ FUN_0a1f4:
         bra .La332
         mov.l r13, @r15
 .La26e:
+        ! Skip this entry when bit 1 of the byte at cursor+25 is set.
+        ! Otherwise read the byte at cursor+32, index cursor+33 by it,
+        ! save that byte, and store 59 over it. Call 0x8C000598 with
+        ! r5 = GBR+156. A nonzero result restores the saved byte.
         mov #25, r0
         mov.b @(r0,r14), r2
         extu.b r2, r2
@@ -88,6 +102,9 @@ FUN_0a1f4:
         mov r0, r5
         tst r0, r0
         bf .La32a
+        ! Call hole 0x9CE2 at cursor+14 and again at cursor+6. Add 0x96
+        ! to the second result. If that sum is below 0x6DDD0 and GBR+36
+        ! is not 2, call 0x8C000800 with r4 = 1.
         mov r14, r4
         bsr 0x9ce2
         add #14, r4
@@ -107,6 +124,10 @@ FUN_0a1f4:
         jsr r2
         mov #1, r4
 .La2ba:
+        ! GBR+240 is the second 0x9CE2 result plus 0x96. GBR+244 is
+        ! the first result plus 0x7FF, shifted right 11. GBR+36 == 0
+        ! stores the original list pointer at GBR+248 and 0 at GBR+252.
+        ! Otherwise GBR+248 is 0 and GBR+252 is the first result.
         mov r14, r0
         mov.l r0, @(gbr,240)
         mov.w .La2ee, r0
@@ -133,27 +154,30 @@ FUN_0a1f4:
         mov r13, r0
         .word   0x0258
 .La2e8:
-        .word   0x00a2
+        .word   0x00a2 ! added to the list before hole 0x9CE2
 .La2ea:
-        .word   0x0096
+        .word   0x0096 ! added to a 0x9CE2 result
 .La2ec:
-        .word   0x0800
+        .word   0x0800 ! added to the cursor before the walk
 .La2ee:
-        .word   0x07ff
+        .word   0x07ff ! added before the shift into GBR+244
 .La2f0:
-        .long   0x8c0004d8
+        .long   0x8c0004d8 ! called with the list pointer
 .La2f4:
-        .long   0x8c000590
+        .long   0x8c000590 ! called with the list pointer
 .La2f8:
-        .long   0x0006ddd0
+        .long   0x0006ddd0 ! compared with the second 0x9CE2 result plus 0x96
 .La2fc:
-        .long   0x8c000598
+        .long   0x8c000598 ! called with r5 = GBR+156
 .La300:
-        .long   0x8c000800
+        .long   0x8c000800 ! called with r4 = 1
 .La304:
         mov #0, r0
 .La306:
         mov.l r0, @(gbr,252)
+        ! Store 10 at GBR+70 and call prime_count68. Command 28 when
+        ! GBR+36 is not 0, otherwise 17. retry_issue(0), hole 0x9CDC,
+        ! and return the first 0x9CE2 result.
         mov #10, r0
         bsr 0xa1d4
         mov.w r0, @(gbr,70)
@@ -176,6 +200,8 @@ FUN_0a1f4:
 .La32a:
         mov.b r9, @r13
 .La32c:
+        ! Advance the cursor by the byte at the cursor. The byte at the
+        ! new cursor being 0, or the cursor reaching the bound, returns 0.
         mov.b @r14, r3
         extu.b r3, r3
         add r3, r14

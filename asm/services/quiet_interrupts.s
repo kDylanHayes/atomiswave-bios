@@ -1,9 +1,11 @@
-! FUN_0a144
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! quiet_interrupts at 0xA144
+! ORs 0x100000F0 into SR, stores 0 at GBR+136, and stores 0 at 0xA05F6910.
+! The reload of that word is the rts delay.
+! Checked assembly, not matched C.
 
         .org    0xa144
-        .global FUN_0a144
-FUN_0a144:
+        .global quiet_interrupts
+quiet_interrupts:
         mov.l 0xa1b4, r2
         stc sr, r3
         or r2, r3

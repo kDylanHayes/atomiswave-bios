@@ -1,5 +1,11 @@
 ! set_system_bits
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! File 0x484. ORs 5 into the word at 0xA05F8044 and waits until Holly
+! bit 0x2000 at 0xA05F810C is clear. Clears bit 3 of 0xA05F80E8, calls
+! poll_bit with r0 = 0x12C, then sets bit 3 and fills 0x25800 dwords at
+! 0xA5000000 with 0x528A528A. Clears bit 3 again. If the word at
+! 0x0CFFFFFC is not 0xFF, branches to check_header. Otherwise calls
+! blit_glyphs twice and loops on itself.
+! Byte-checked assembly, not matched C.
 
         .org    0x484
         .global set_system_bits

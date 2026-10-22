@@ -1,5 +1,9 @@
 ! exc_general
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! File 0x100, the general-exception vector. The entry uses r0, r1, and
+! r2 from the interrupted code. It polls RFCR (0xFF800028) until the
+! halfword is above 8, then branches over a BSC literal pool to 0x204.
+! Later it calls mix_shifts and branches to init_memory.
+! Byte-checked assembly, not matched C.
 
         .org    0x100
         .global exc_general

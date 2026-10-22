@@ -4,8 +4,10 @@
 Every code range is either linked C or checked assembly. Hole and footer
 bytes come from their assembly objects. Font, tables, and padding are copied
 from the ROM only where no object was placed. A built object whose .text
-differs from flash fails this command. objdiff's percent is recorded after
-that check; it is not the grader by itself.
+differs from flash fails this command.
+
+objdiff complete stays false while the built ELF has no relocations. The
+percent is printed and does not pass or fail this command.
 """
 
 from __future__ import annotations
@@ -68,6 +70,7 @@ def main():
     covered = bytearray(len(rom))
     c_matched = []
     asm_matched = []
+    relocations = 0
     for fn in payload["functions"]:
         path = object_for(fn)
         if path is None:
@@ -79,6 +82,7 @@ def main():
         expected = ROOT / "expected" / fn["category"] / f"{fn['name']}.o"
         if blob != expected.read_bytes():
             raise SystemExit(f"{fn['name']}: built ELF is not the extracted ELF")
+        relocations += sh4.elf_relocation_count(blob)
         place(image, covered, fn["entry"], data, fn["name"])
         if fn.get("matched_c"):
             c_matched.append(fn)
@@ -120,7 +124,11 @@ def main():
         + ", ".join(f"{fn['name']} {fn['end'] - fn['entry']} bytes at 0x{fn['entry']:x}" for fn in asm_matched)
     )
     print(f"byte-identical assembly total: {len(asm_matched)} functions, {asm_bytes} bytes")
-    print("unmatched code: 0 functions, 0 bytes")
+    unplaced_bytes = sum(
+        (fn["end"] - fn["entry"]) - sum(covered[fn["entry"]:fn["end"]])
+        for fn in payload["functions"]
+    )
+    print(f"unplaced code: {len(missing)} functions, {unplaced_bytes} bytes")
     print(
         f"built ELF matches extracted ELF for {len(c_matched) + len(asm_matched)} code units"
     )
@@ -128,10 +136,23 @@ def main():
     if digest != SHA1:
         raise SystemExit(f"image sha1 {digest} does not match bios0")
     config = json.loads((ROOT / "objdiff.json").read_text())
+    false_complete = []
+    for unit in config["units"]:
+        if not unit["metadata"].get("complete"):
+            continue
+        base = unit.get("base_path")
+        count = sh4.elf_relocation_count((ROOT / base).read_bytes()) if base else 0
+        if count == 0:
+            false_complete.append(unit["name"])
+    if false_complete:
+        raise SystemExit(
+            "objdiff complete is set on an object with no relocations: "
+            + ", ".join(false_complete)
+        )
     open_units = [unit["name"] for unit in config["units"] if not unit["metadata"].get("complete")]
-    if open_units:
-        raise SystemExit("objdiff complete is false for " + ", ".join(open_units))
-    print(f"objdiff complete: true on {len(config['units'])} units")
+    done = len(config["units"]) - len(open_units)
+    print(f"objdiff complete: true on {done} units, false on {len(open_units)} units")
+    print(f"relocation entries: {relocations}")
     if not CLI.is_file():
         raise SystemExit("objdiff-cli is not installed at tools/bin/objdiff-cli")
     report = subprocess.run(
@@ -144,14 +165,8 @@ def main():
         raise SystemExit("objdiff report failed\n" + report.stderr.strip())
     body = json.loads(report.stdout)
     total = float(body["measures"]["matched_code_percent"])
-    if total != 100.0:
-        raise SystemExit(f"objdiff matched code is {total}%")
-    for unit in body["units"]:
-        percent = float(unit["measures"].get("matched_code_percent", 0))
-        if percent != 100.0 or not unit["metadata"].get("complete"):
-            raise SystemExit(f"{unit['name']}: objdiff {percent}% complete={unit['metadata'].get('complete')}")
-    print("objdiff report: 100% matched code, complete true on every unit")
-    print("objdiff percent is not the grader. The byte check above is.")
+    print(f"objdiff report: {total}% matched code")
+    print("objdiff percent is not the grader. The byte check above is the image gate.")
 
 
 if __name__ == "__main__":

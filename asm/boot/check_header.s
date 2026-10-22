@@ -1,5 +1,8 @@
 ! check_header
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! File 0x538. Compares four dwords at 0xAC010000 with the four dwords
+! at file 0xA00. A match branches to program_bootrom. A mismatch stays
+! in this range.
+! Byte-checked assembly, not matched C.
 
         .org    0x538
         .global check_header

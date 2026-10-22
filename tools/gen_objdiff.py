@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Write expected ELF objects and objdiff.json from asm/map.json.
 
-complete is true only when the built object .text already matches the flash
-range. objdiff 3.8.2 disassembles SuperH as big-endian, so the percent is
-not the grader. See docs/objdiff.md.
+complete stays false. write_elf stores the flash halfwords and emits no
+relocations, and objdiff 3.8.2 disassembles SuperH as big-endian. The byte
+check in tools/progress.py does not set this flag. See docs/objdiff.md.
 """
 
 from __future__ import annotations
@@ -44,16 +44,11 @@ def main():
             base = "build/" + fn["source"][:-2] + ".o"
         else:
             base = None
-        complete = False
-        if base:
-            built = ROOT / base
-            if built.is_file():
-                complete = sh4.elf_text(built.read_bytes()) == data
         unit = {
             "name": f"{fn['category']}/{fn['name']}",
             "target_path": str(target.relative_to(ROOT)),
             "metadata": {
-                "complete": complete,
+                "complete": False,
                 "progress_categories": [fn["category"]],
             },
         }
@@ -78,7 +73,10 @@ def main():
         "units": units,
     }
     (ROOT / "objdiff.json").write_text(json.dumps(config, indent=2) + "\n")
-    print(f"units {len(units)}  with source {sum(1 for u in units if 'base_path' in u)}")
+    print(
+        f"units {len(units)}  with source {sum(1 for u in units if 'base_path' in u)}"
+        "  complete false"
+    )
 
 
 if __name__ == "__main__":

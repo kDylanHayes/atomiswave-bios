@@ -45,12 +45,35 @@ typedef int32_t s32;
 #define AWB_FLASH_555 0xA0000555u
 #define AWB_FLASH_2AA 0xA00002AAu
 
-/* Runtime handoff pointer. The jmp at file 0x966 is not a constant. */
-#define AWB_BOOT_RAM 0x01AC0000u
-#define AWB_HANDOFF 0x01AC006Cu
+/* The jmp at file 0x966 is 0xA0000000 | the dword at 0xAC01006C.
+ * program_bootrom loads 0xAC010000 and adds 0x6C. The Ghidra export
+ * comment names 0x01AC006C. That address is not in this pool. */
+#define AWB_AREA3_P2 0xAC010000u
+#define AWB_HANDOFF 0xAC01006Cu
 
 /* Footer at file 0x1A000. No code reference to it has been found. */
 #define AWB_FOOTER_OFF 0x0001A000u
 #define AWB_FOOTER_LEN 12u
+
+/* Service cluster. step_phase installs this as GBR, then restores the old one. */
+#define AWB_GBR_BASE 0x8C000000u
+
+/* Compared with the word at GBR+100 by ram_window_ready. */
+#define AWB_RAM_WINDOW 0x8C008000u
+
+/* Fixed RAM call. r7 is 0, 1, 2, 3, or 4 at the sites in this image. */
+#define AWB_RAM_SERVICE 0x8C0010F0u
+
+/* Stored at GBR+136 by set_hook. */
+#define AWB_RAM_HOOK 0x8C000C86u
+
+/* enter_ram writes 8 here. quiet_interrupts writes 0. */
+#define SB_IML2NRM 0xA05F6910u
+
+/* ORed into SR by enter_ram and quiet_interrupts. Sets BL and IMASK. */
+#define AWB_SR_BLOCK 0x100000F0u
+
+/* ANDed into SR by enter_ram. Clears BL and IMASK. */
+#define AWB_SR_UNBLOCK 0xEFFFFF0Fu
 
 #endif

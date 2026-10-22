@@ -39,11 +39,30 @@ NAMES = {
     0x7A4: "program_bootrom",
     0x97C: "poll_bit",
     0x99C: "blit_glyphs",
+    0x9E34: "reject_code",
+    0x9E50: "ram_window_ready",
+    0x9E68: "step_phase",
+    0x9FBC: "service_main",
+    0xA116: "enter_ram",
+    0xA144: "quiet_interrupts",
+    0xA158: "set_hook",
+    0xA15E: "ram_call_2",
+    0xA16A: "ram_call_3",
+    0xA1D4: "prime_count68",
+    0xA1DA: "phase_until_clear",
+    0xA1F4: "scan_list",
+    0xA354: "retry_issue",
+    0xA370: "run_transfer",
+    0xA3A0: "issue_command",
 }
 # Spans include the trailing literal pool. These three were the first
 # handwritten units and must stay kind asm at these ends.
 REQUIRED = {0x318: 0x350, 0x46C: 0x484, 0x97C: 0x99C}
-MATCHED_C = "FUN_09e34"
+MATCHED_C = {
+    "reject_code": "build/services/reject_code.o",
+    "retry_issue": "build/services/retry_issue.o",
+    "run_transfer": "build/services/run_transfer.o",
+}
 TOP = object()
 CONTROL = {
     "bra", "bsr", "bt", "bf", "bt/s", "bf/s", "jmp", "jsr", "rts", "rte", "braf", "bsrf",
@@ -526,9 +545,9 @@ def build(rom):
     for fn in functions:
         fn["kind"] = kind[fn["entry"]]
         fn["category"] = "services" if fn["kind"] == "compiled" else "boot"
-        if fn["name"] == MATCHED_C:
+        if fn["name"] in MATCHED_C:
             fn["matched_c"] = True
-            fn["object"] = "build/services/FUN_09e34.o"
+            fn["object"] = MATCHED_C[fn["name"]]
         else:
             folder = "boot" if fn["category"] == "boot" else "services"
             fn["source"] = f"asm/{folder}/{fn['name']}.s"
@@ -585,9 +604,14 @@ def notes_for(rom, functions, holes, refs):
         else f"recovered code extends to 0x{last:05x}, which is past 0xA6A0"
     )
     lines.append("bytes that are not listed were not linear-swept; font, tables, and padding stay data")
+    matched = [fn for fn in functions if fn.get("matched_c")]
+    listed = ", ".join(
+        f"{fn['name']} ({fn['end'] - fn['entry']} bytes at 0x{fn['entry']:x})"
+        for fn in matched
+    )
     lines.append(
         "Hitachi SHC 5.1 Release 04 is pinned: -cpu=sh3 -endian=little -optimize=1. "
-        "C match in this build is FUN_09e34, 28 bytes; see docs/compiler.md"
+        f"C matches in this build: {listed}; see docs/compiler.md"
     )
     return lines
 
@@ -598,7 +622,8 @@ def write_text(path, functions, data, notes, digest):
         f"# sha1 {digest}",
         "# kind is asm, compiled, or data. compiled means an ABI prologue or a real bsr,",
         "# or a routine past 0x9E00 that is only reached from one of those.",
-        "# A compiled range is checked assembly in the image, except FUN_09e34, which is matched C.",
+        "# Matched C is reject_code, retry_issue, and run_transfer.",
+        "# Every other compiled range is checked assembly.",
         "# mix_shifts, copy_words, and poll_bit are handwritten. The other .s files are lifted from flash.",
     ]
     lines.extend(f"# {note}" for note in notes)
@@ -661,7 +686,7 @@ def main():
         "image": "bios0",
         "sha1": digest,
         "compiler": "Hitachi SHC 5.1 Release 04 -cpu=sh3 -endian=little -optimize=1",
-        "c_match_functions": 1,
+        "c_match_functions": sum(1 for fn in functions if fn.get("matched_c")),
         "notes": notes,
         "functions": functions,
         "data": data,

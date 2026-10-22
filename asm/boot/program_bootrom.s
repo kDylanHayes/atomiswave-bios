@@ -1,5 +1,11 @@
 ! program_bootrom
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! File 0x7A4. Compares 16 dwords at 0xA0018000 with 0xAC010010. A match
+! goes to the handoff at 0x8C0. A mismatch calls blit_glyphs twice,
+! clears 0x8000 dwords at 0xA0200000, then byte-programs through
+! 0xA0000555 and 0xA00002AA. The bytes written are 0xAA, 0x55, and
+! 0xA0. It then calls poll_bit with r0 = 0xB4. The handoff jumps to
+! 0xA0000000 ored with the dword at 0xAC01006C.
+! Byte-checked assembly, not matched C.
 
         .org    0x7a4
         .global program_bootrom

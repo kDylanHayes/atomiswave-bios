@@ -1,5 +1,10 @@
 ! boot
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! File 0x5C. ORs 0xA0000000 onto 0x80 and 0xA678 and reads every dword
+! from 0xA0000080 while the pointer stays below 0xA000A678. That end
+! address is a limit, not a call. Loads SR from file 0x11C (0x700000F0)
+! and copies the BSC table that follows it. Polls the halfword at the
+! address stored at file 0x144 (RFCR, 0xFF800028) until it is above 8.
+! Byte-checked assembly, not matched C.
 
         .org    0x5c
         .global boot

@@ -4,8 +4,9 @@
 The decoder covers the integer instructions this image actually uses.
 The assembler accepts a small GNU as subset and emits the same halfwords.
 write_elf wraps those bytes in an ELF32 ET_REL object (EM_SH, EF_SH4)
-with no relocations. That is the shape objdiff can grade. It is not a
-substitute for sh-elf-as, and it is not evidence that a C compiler matches.
+with no relocations. objdiff can load that file. An empty relocation
+section is not a match. It is not a substitute for sh-elf-as, and it is
+not evidence that a C compiler matches.
 """
 
 from __future__ import annotations
@@ -879,6 +880,22 @@ def elf_text(blob):
         if name == b".text":
             return blob[offset:offset + size]
     raise ValueError("ELF has no .text section")
+
+
+def elf_relocation_count(blob):
+    """SHT_REL and SHT_RELA entries. write_elf emits none."""
+    if blob[:4] != b"\x7fELF":
+        raise ValueError("not an ELF")
+    e_shoff, = struct.unpack_from("<I", blob, 32)
+    e_shentsize, e_shnum, _shstrndx = struct.unpack_from("<HHH", blob, 46)
+    total = 0
+    for index in range(e_shnum):
+        off = e_shoff + index * e_shentsize
+        header = struct.unpack_from("<IIIIIIIIII", blob, off)
+        sh_type, sh_size, sh_entsize = header[1], header[5], header[9]
+        if sh_type in (4, 9) and sh_entsize:
+            total += sh_size // sh_entsize
+    return total
 
 
 def check_against_rom(origin, data, rom):

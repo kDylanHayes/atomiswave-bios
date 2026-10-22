@@ -1,5 +1,8 @@
 ! exc_interrupt
-! Lifted from bios0. Byte-checked assembly, not matched C.
+! File 0x600, the interrupt vector. The bf after the first dt targets
+! 0x5F2, which is inside check_header. The rest fills a run and walks
+! a table of halfwords.
+! Byte-checked assembly, not matched C.
 
         .org    0x600
         .global exc_interrupt
