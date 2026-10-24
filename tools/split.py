@@ -63,6 +63,8 @@ MATCHED_C = {
     "retry_issue": "build/services/retry_issue.o",
     "run_transfer": "build/services/run_transfer.o",
     "phase_until_clear": "build/services/phase_until_clear.o",
+    "set_hook": "build/services/set_hook.o",
+    "ram_window_ready": "build/services/ram_window_ready.o",
 }
 TOP = object()
 CONTROL = {
@@ -623,7 +625,8 @@ def write_text(path, functions, data, notes, digest):
         f"# sha1 {digest}",
         "# kind is asm, compiled, or data. compiled means an ABI prologue or a real bsr,",
         "# or a routine past 0x9E00 that is only reached from one of those.",
-        "# Matched C is reject_code, phase_until_clear, retry_issue, and run_transfer.",
+        "# Matched C is reject_code, ram_window_ready, phase_until_clear,",
+        "# set_hook, retry_issue, and run_transfer.",
         "# Every other compiled range is checked assembly.",
         "# mix_shifts, copy_words, and poll_bit are handwritten. The other .s files are lifted from flash.",
     ]

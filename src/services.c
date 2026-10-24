@@ -9,9 +9,12 @@
  * It compiles retry_issue and run_transfer in a second unit, with static
  * stubs at the flash distances, so their bsr displacements match.
  * phase_until_clear is a third unit. A 6-byte spacer occupies the
- * prime_count68 slot so this function starts at 0xA1DA. The other
- * schedules in this file stay unlinked. An extern compiles as jsr. A
- * bsr needs a static callee in the same unit. This file is the schedule
+ * prime_count68 slot so this function starts at 0xA1DA.
+ * set_hook and ram_window_ready are linked in their own units. A later
+ * function mentions the same literal so the pool lands on the flash
+ * displacement. The other schedules in this file stay unlinked. An
+ * extern compiles as jsr. A bsr needs a static callee in the same unit.
+ * This file is the schedule
  * source. It is not the flash image.
  *
  * hole_09cdc, step_phase, and issue_command are named from the bsr

@@ -1,6 +1,6 @@
 # Service cluster
 
-The ABI-shaped code is flash `0x9E34` through `0xA49C`. `reject_code`, `phase_until_clear`, `retry_issue`, and `run_transfer` are matched C. Every other range here is checked assembly. Boot code below `0xA00` keeps the names already in `asm/boot/`.
+The ABI-shaped code is flash `0x9E34` through `0xA49C`. `reject_code`, `ram_window_ready`, `set_hook`, `phase_until_clear`, `retry_issue`, and `run_transfer` are matched C. Every other range here is checked assembly. Boot code below `0xA00` keeps the names already in `asm/boot/`.
 
 `step_phase` installs GBR = `0x8C000000` and restores the caller's GBR before it returns. Other routines use whatever GBR the caller left. Offsets below are displacements from that base. `$G0` is 128 bytes, so the second window starts at GBR+128.
 
@@ -15,12 +15,12 @@ An AI assigned every name in this table. The flash does not contain them. `servi
 | Flash | Name | What the bytes do |
 | --- | --- | --- |
 | `0x9E34` | `reject_code` | Returns -1 when the word at GBR+72 is 6, 7, or 9. Otherwise 0. Matched C. |
-| `0x9E50` | `ram_window_ready` | Returns 1 when GBR+100 is `0x8C008000` and GBR+76 is 32. |
+| `0x9E50` | `ram_window_ready` | Returns 1 when GBR+100 is `0x8C008000` and GBR+76 is 32. Matched C. |
 | `0x9E68` | `step_phase` | One step of the signed short at GBR+144. See below. |
 | `0x9FBC` | `service_main` | Outer driver. Calls the others and several RAM addresses. |
 | `0xA116` | `enter_ram` | Blocks interrupts, sets VBR to `0x8C000000`, then jumps to `0x8C000768`. |
 | `0xA144` | `quiet_interrupts` | Blocks interrupts, stores 0 at GBR+136, stores 0 at `0xA05F6910`. |
-| `0xA158` | `set_hook` | Stores `0x8C000C86` at GBR+136. |
+| `0xA158` | `set_hook` | Stores `0x8C000C86` at GBR+136. Matched C. |
 | `0xA15E` | `ram_call_2` | Tail call `0x8C0010F0(0, 0, 0, 2)`. |
 | `0xA16A` | `ram_call_3` | Tail call `0x8C0010F0(0, 0, 0, 3)`. The other 94 bytes of the range are the shared pool. |
 | `0xA1D4` | `prime_count68` | Loads the halfword at `0xA0E6` (`0x65A3`) into GBR+68. |
@@ -97,6 +97,8 @@ The clamp compares the new phase with GBR+146. A phase below that limit becomes 
 
 `phase_until_clear` is matched C in its own unit. The unit's `step_phase` is a 4-byte stub, and a 6-byte `gap_six` fills the `prime_count68` slot so the function starts at `0xA1DA`. Those are distances, not the real bodies.
 
-`ram_window_ready`, `set_hook`, `ram_call_2`, `ram_call_3`, and `prime_count68` have schedules in `src/services.c`. They are not linked. `prime_count68` in that file stores `0x65A3`, which is the halfword at `0xA0E6`. An earlier schedule used 600. That value is the halfword at `0xA2E6`, and it is not the one this instruction loads.
+`set_hook` and `ram_window_ready` are matched C. Each unit places a second mention of the same literal after a run of empty functions, so the forward `mov.l` displacement matches the flash. Those second functions are not in the image.
+
+`ram_call_2`, `ram_call_3`, and `prime_count68` have schedules in `src/services.c`. They are not linked. `prime_count68` in that file stores `0x65A3`, which is the halfword at `0xA0E6`. An earlier schedule used 600. That value is the halfword at `0xA2E6`, and it is not the one this instruction loads.
 
 `service_main` loads its literals from the pool in `ram_call_3`, file `0xA178` through `0xA1D0`. The halfword at `0xA0E6` sits in `service_main`, between a `bf` and its target. `prime_count68` loads it. When `r11` is 0 those bytes also execute: `mov r10, r5`, then `bra` over the following load of `r5`, with `add #16, r5` in the delay slot. `r5` is then `r10 + 16`. When `r11` is not 0, the `bf` skips them and `r5` is the pool constant `0xB06E`. `r4` is `0x8C010000` on both paths.

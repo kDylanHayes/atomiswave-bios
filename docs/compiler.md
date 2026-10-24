@@ -26,13 +26,15 @@ The compiler is not in this repo. The local copy is
 `~/Documents/awbios/shc`, extracted from the Katana R9 cab next to
 `bios0.ic23`. `shc.exe` identifies itself as SH SERIES C/C++ Compiler
 Ver. 5.1 (Release 04). Matched C is `reject_code` (28 bytes at
-`0x9E34`), `phase_until_clear` (26 bytes at `0xA1DA`), `retry_issue`
+`0x9E34`), `ram_window_ready` (24 bytes at `0x9E50`), `set_hook` (6 bytes
+at `0xA158`), `phase_until_clear` (26 bytes at `0xA1DA`), `retry_issue`
 (28 bytes at `0xA354`), and `run_transfer` (48 bytes at `0xA370`).
 `reject_code` is linked on its own with `$G0` at 0. `retry_issue` and
-`run_transfer` are linked together. `phase_until_clear` is a third unit.
-`src/services.c` also holds schedules for `ram_window_ready`, `set_hook`,
-`ram_call_2`, `ram_call_3`, and `prime_count68`. Linking that whole file
-does not reproduce the flash. The pin still caches a repeated 0 in a
+`run_transfer` are linked together. `phase_until_clear`, `set_hook`, and
+`ram_window_ready` are separate units. `src/services.c` also holds
+schedules for `ram_call_2`, `ram_call_3`, and `prime_count68`. Linking
+that whole file does not reproduce the flash. The pin still caches a
+repeated 0 in a
 callee-saved register, hoists the GBR install above the first push, and
 keeps a promoted value across a call. Those ranges are checked assembly in
 `asm/services/`. `-nospeed`, `-speed`, `-size`, `-rtnext`, and `-cpu=sh4`
@@ -48,8 +50,8 @@ stub of that size.
 | Flash | Bytes | Source | Result |
 | --- | --- | --- | --- |
 | `0x9E34` | 28 | `reject_code` | linked bytes match the flash |
-| `0x9E50` | 24 | `ram_window_ready` | schedule matches, including both returns |
-| `0xA158` | 6 | `set_hook` | `rts` with the store in the delay slot |
+| `0x9E50` | 24 | `ram_window_ready` | linked bytes match the flash |
+| `0xA158` | 6 | `set_hook` | linked bytes match the flash |
 | `0xA15E` | 12 | `ram_call_2` | tail `jmp` to `0x8C0010F0` with args `(0,0,0,2)` |
 | `0xA16A` | 12 | `ram_call_3` | same tail call with `(0,0,0,3)`. The following bytes are a literal pool, not this function |
 | `0xA1D4` | 6 | `prime_count68` | loads halfword `0x65A3` from `0xA0E6` into GBR+68 in the `rts` delay slot. 600 is the halfword at `0xA2E6` and is not this load |
@@ -88,6 +90,24 @@ trailing `keep_lo` reads `lo.code_72`, which keeps `$G0` at 128 bytes.
 `$G1` follows it, and the linker fills the store as `C149` (GBR+146).
 `rof2bin -e=518` is the exclusive end of the 26-byte slice. `gap_six` and
 `keep_lo` are not flash functions. The real `step_phase` stays assembly.
+
+`set_hook` is `mov.l` / `rts` / `mov.l` to GBR+136. The constant
+`0x8C000C86` is at flash `0xA1CC`, displacement `0x1C`. Compiled alone,
+the pool sits next to the function and the displacement is `0x02`. A
+second function stores the same constant, and 26 four-byte functions
+separate them. SHC keeps one pool after that second function, at offset
+`0x74`. One of those four-byte functions returns `lo.code_72`, which
+keeps `$G0` at 128 bytes, so the store links as `C222`. `rof2bin -e=6`
+is the function. The second store is not in the flash.
+
+`ram_window_ready` compares GBR+100 with `0x8C008000` and GBR+76 with 32.
+The constant is at flash `0x9EFC`, inside `step_phase`, displacement
+`0x2A` from the `mov.l` at `0x9E52`. 35 empty globals and `return
+0x8C008000` put that constant at offset `0xAC`. The tail is 6 bytes and
+ends two bytes off a 4-byte boundary, so the compiler writes a halfword
+pad and the long follows it. The linked loads are `C619` and `C613`.
+`rof2bin -e=18` is the 24-byte function. The tail is not in the flash.
+The real bytes at `0x9EFC` stay inside `step_phase`.
 
 GBR variables use `#pragma gbr_base (lo)` and `#pragma gbr_base1 (hi)`.
 The parenthesis form is required, and the pragma comes before the
