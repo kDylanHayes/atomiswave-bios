@@ -8,7 +8,7 @@ PYTHON ?= python3
 
 ASM_SRCS := $(wildcard asm/boot/*.s) $(wildcard asm/services/*.s) $(wildcard asm/data/*.s)
 ASM_OBJS := $(patsubst asm/%.s,build/asm/%.o,$(ASM_SRCS))
-C_OBJS := build/services/reject_code.o build/services/retry_issue.o build/services/run_transfer.o
+C_OBJS := build/services/reject_code.o build/services/phase_until_clear.o build/services/retry_issue.o build/services/run_transfer.o
 LINK_DEPS := src/services.c tools/link_matched.py tools/sh4.py
 
 .PHONY: all split probe progress
@@ -22,7 +22,7 @@ build/asm/%.o: asm/%.s
 	@mkdir -p $(dir $@)
 	$(PYTHON) tools/as_sh.py $< -o $@ --check $(ROM)
 
-# One recipe writes all three objects. The stamp is touched after that,
+# One recipe writes all four objects. The stamp is touched after that,
 # so a missing object is the only reason to link a second time.
 build/services/matched.stamp: $(LINK_DEPS)
 	@mkdir -p $(dir $@)

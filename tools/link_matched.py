@@ -7,9 +7,16 @@ retry_issue and run_transfer share one unit. A bsr displacement is fixed
 at compile time, so the static callees have to sit at the flash distances.
 hole_09cdc, prime_count68, and issue_command are 4-byte stubs in that unit.
 317 and 95 unreferenced global empty functions fill the gaps. The real
-bodies of those callees stay assembly. rof2bin pulls section P out of the
-absolute file. -e is an exclusive end address. The slices are compared
-with bios0 before any object is written.
+bodies of those callees stay assembly.
+
+phase_until_clear is a third unit. It starts at 0xA1DA, which is 2-mod-4,
+because prime_count68 is 6 bytes and ends there. A run of only 4-byte
+functions cannot land on that address. gap_six is a global `return value + 1`
+(6 bytes, no literal pool) in the slot prime_count68 occupies. It is not
+the flash body. hole_09cdc and step_phase are 4-byte static stubs so the
+two bsr displacements match. rof2bin pulls section P out of the absolute
+file. -e is an exclusive end address. The slices are compared with bios0
+before any object is written.
 
 The H SERIES linker prints ** 202 on `start P/0,$G0/0` and still writes
 the absolute file. That line stays. The pin flags stay.
@@ -54,6 +61,12 @@ RETRY_SIZE = 28
 RUN_SIZE = 48
 REJECT_ENTRY = 0x9E34
 REJECT_SIZE = 28
+STEP = 0x9E68
+PHASE = 0xA1DA
+PHASE_SIZE = 26
+# prime_count68 is 6 bytes at 0xA1D4 and phase_until_clear begins on the
+# next halfword. The spacer has to be that size and must not grow a pool.
+ANCHOR = 6
 
 
 def section_off(addr):
@@ -146,6 +159,75 @@ def distance_unit(text):
     return source
 
 
+def gbr_structs(text):
+    lo_at = text.index("#pragma gbr_base (lo)")
+    lo = text[lo_at:text.index("} lo;", lo_at) + len("} lo;")]
+    hi_at = text.index("#pragma gbr_base1 (hi)")
+    hi = text[hi_at:text.index("} hi;", hi_at) + len("} hi;")]
+    return lo, hi
+
+
+def phase_unit(text):
+    """One translation unit whose bsr sites match 0xA1DA.
+
+    Layout, with hole_09cdc at section offset 0:
+      4-byte hole, 98 global pads, 4-byte step_phase, 218 global pads,
+      6-byte gap_six, phase_until_clear (26 bytes).
+    A trailing reference keeps the 128-byte lo window in the link so hi
+    stays the next GBR section. GBR+146 is hi+18.
+    """
+    lo, hi = gbr_structs(text)
+    pads_step = (section_off(STEP) - STUB) // STUB
+    anchor_at = section_off(PHASE) - ANCHOR
+    gap = anchor_at - (section_off(STEP) + STUB)
+    pads_gap = gap // STUB
+    if pads_step != 98 or pads_gap != 218 or gap % STUB or PHASE % 4 != 2:
+        raise SystemExit(
+            f"phase pads drifted: {pads_step} then {pads_gap}, gap {gap}"
+        )
+    phase = function_at(text, "int phase_until_clear(short param_1)")
+    if phase.startswith("static "):
+        raise SystemExit("phase_until_clear has to stay global")
+    for needle in ("hi.limit_146 = param_1;", "hole_09cdc();", "step_phase()"):
+        if needle not in phase:
+            raise SystemExit(f"phase_until_clear lost {needle}")
+    parts = [
+        lo,
+        "",
+        hi,
+        "",
+        "static void hole_09cdc(void);",
+        "static int step_phase(void);",
+        "",
+        empty_function("hole_09cdc", True).rstrip("\n"),
+        "",
+    ]
+    parts.extend(
+        empty_function(f"pad_c_{index:04d}", False).rstrip("\n")
+        for index in range(pads_step)
+    )
+    parts.append("")
+    parts.append("static int step_phase(void)\n{\n    return 0;\n}")
+    parts.append("")
+    parts.extend(
+        empty_function(f"pad_d_{index:04d}", False).rstrip("\n")
+        for index in range(pads_gap)
+    )
+    parts.append("")
+    parts.append("int gap_six(int value)\n{\n    return value + 1;\n}")
+    parts.append("")
+    parts.append(phase)
+    parts.append("")
+    # After phase, so it does not move the matched slice. Referencing lo
+    # keeps $G0 at 128 bytes. $G1 then begins at GBR+128.
+    parts.append("int keep_lo(void)\n{\n    return lo.code_72;\n}")
+    parts.append("")
+    source = "\n".join(parts)
+    if source.count("\nvoid pad_c_") != 98 or source.count("\nvoid pad_d_") != 218:
+        raise SystemExit("phase pad functions were not emitted")
+    return source
+
+
 def stage_tools():
     lib_src = SHC_LIB
     inc_src = SHC_INC
@@ -179,14 +261,30 @@ def write_crlf(name, text):
     (STAGE / name).write_bytes(normalized.encode())
 
 
-def compile_both(reject_src, probe_src):
+def listed_offset(listing, function_name):
+    """Object-listing address of a function, or None if the name is absent."""
+    if not listing.is_file():
+        return None
+    needle = f"function: {function_name}"
+    for line in listing.read_text(errors="replace").splitlines():
+        if needle not in line:
+            continue
+        for part in line.split():
+            if len(part) == 8 and all(c in "0123456789ABCDEFabcdef" for c in part):
+                return int(part, 16)
+    return None
+
+
+def compile_both(reject_src, probe_src, phase_src):
     for flag in REJECTED:
         if flag in PIN_FLAGS:
             raise SystemExit(f"pin contains rejected flag {flag}")
     stage_tools()
     write_lf("f9e34.c", reject_src)
     write_lf("fprobe.c", probe_src)
+    write_lf("fphase.c", phase_src)
     p_end = section_off(ISSUE) + STUB
+    phase_end = section_off(PHASE) + PHASE_SIZE
     bat = (
         f"c:\\probe\\lib\\shc.exe c:\\probe\\f9e34.c {PIN_FLAGS} "
         "-show=object -listfile=c:\\probe\\out\\f9e34.lst\r\n"
@@ -196,6 +294,10 @@ def compile_both(reject_src, probe_src):
         "-show=object -listfile=c:\\probe\\out\\fprobe.lst\r\n"
         "c:\\probe\\lib\\lnk.exe -subcommand=c:\\probe\\link_probe.sub\r\n"
         f"c:\\probe\\lib\\rof2bin.exe -q -s=0 -e={p_end:X} c:\\probe\\fprobe.abs\r\n"
+        f"c:\\probe\\lib\\shc.exe c:\\probe\\fphase.c {PIN_FLAGS} "
+        "-show=object -listfile=c:\\probe\\out\\fphase.lst\r\n"
+        "c:\\probe\\lib\\lnk.exe -subcommand=c:\\probe\\link_phase.sub\r\n"
+        f"c:\\probe\\lib\\rof2bin.exe -q -s=0 -e={phase_end:X} c:\\probe\\fphase.abs\r\n"
     )
     for flag in REJECTED:
         if flag in bat:
@@ -219,7 +321,20 @@ def compile_both(reject_src, probe_src):
         "print c:\\probe\\fprobe.map\r\n"
         "exit\r\n",
     )
-    for name in ("f9e34.abs", "f9e34.bin", "fprobe.abs", "fprobe.bin"):
+    write_crlf(
+        "link_phase.sub",
+        "input c:\\probe\\fphase.obj\r\n"
+        "output c:\\probe\\fphase.abs\r\n"
+        "entry _phase_until_clear\r\n"
+        "start P/0,$G0/0\r\n"
+        "print c:\\probe\\fphase.map\r\n"
+        "exit\r\n",
+    )
+    for name in (
+        "f9e34.abs", "f9e34.bin",
+        "fprobe.abs", "fprobe.bin",
+        "fphase.abs", "fphase.bin",
+    ):
         path = STAGE / name
         if path.exists():
             path.unlink()
@@ -245,9 +360,14 @@ def compile_both(reject_src, probe_src):
     ran = subprocess.run(cmd, check=False, capture_output=True, text=True)
     reject_bin = STAGE / "f9e34.bin"
     probe_bin = STAGE / "fprobe.bin"
-    if not reject_bin.is_file() or not probe_bin.is_file():
+    phase_bin = STAGE / "fphase.bin"
+    if not reject_bin.is_file() or not probe_bin.is_file() or not phase_bin.is_file():
         chunks = [(ran.stdout or ""), (ran.stderr or "")]
-        for listing in (STAGE / "out" / "f9e34.lst", STAGE / "out" / "fprobe.lst"):
+        for listing in (
+            STAGE / "out" / "f9e34.lst",
+            STAGE / "out" / "fprobe.lst",
+            STAGE / "out" / "fphase.lst",
+        ):
             if listing.is_file():
                 lines = [
                     line for line in listing.read_text(errors="replace").splitlines()
@@ -255,13 +375,15 @@ def compile_both(reject_src, probe_src):
                 ]
                 chunks.append("\n".join(lines[-20:]))
         raise SystemExit("linker wrote no binary image\n" + "\n".join(chunks)[-2500:])
-    return reject_bin.read_bytes(), probe_bin.read_bytes()
+    return reject_bin.read_bytes(), probe_bin.read_bytes(), phase_bin.read_bytes()
 
 
 def require_equal(name, got, flash):
     if got != flash:
         raise SystemExit(
-            f"{name} linked bytes differ from flash: {got.hex()}"
+            f"{name} linked bytes differ from flash\n"
+            f"got   {got.hex()}\n"
+            f"flash {flash.hex()}"
         )
 
 
@@ -271,37 +393,62 @@ def main():
     args = parser.parse_args()
     rom = Path(args.rom).read_bytes()
     source = (ROOT / "src/services.c").read_text()
-    reject_bin, probe_bin = compile_both(slice_reject(source), distance_unit(source))
+    reject_bin, probe_bin, phase_bin = compile_both(
+        slice_reject(source), distance_unit(source), phase_unit(source)
+    )
     if len(reject_bin) != REJECT_SIZE:
         raise SystemExit(f"reject_code image is {len(reject_bin)} bytes")
     p_end = section_off(ISSUE) + STUB
     if len(probe_bin) != p_end:
         raise SystemExit(f"distance image is {len(probe_bin)} bytes, P is {p_end}")
+    phase_end = section_off(PHASE) + PHASE_SIZE
+    if len(phase_bin) != phase_end:
+        where = listed_offset(STAGE / "out" / "fphase.lst", "phase_until_clear")
+        anchor = listed_offset(STAGE / "out" / "fphase.lst", "gap_six")
+        raise SystemExit(
+            f"phase image is {len(phase_bin)} bytes, P slice is {phase_end}; "
+            f"gap_six at {anchor}, phase_until_clear at {where}"
+        )
     reject = reject_bin
     retry = probe_bin[section_off(RETRY):section_off(RETRY) + RETRY_SIZE]
     run = probe_bin[section_off(RUN):section_off(RUN) + RUN_SIZE]
+    phase = phase_bin[section_off(PHASE):section_off(PHASE) + PHASE_SIZE]
     require_equal("reject_code", reject, rom[REJECT_ENTRY:REJECT_ENTRY + REJECT_SIZE])
     require_equal("retry_issue", retry, rom[RETRY:RETRY + RETRY_SIZE])
     require_equal("run_transfer", run, rom[RUN:RUN + RUN_SIZE])
+    flash_phase = rom[PHASE:PHASE + PHASE_SIZE]
+    if phase != flash_phase:
+        where = listed_offset(STAGE / "out" / "fphase.lst", "phase_until_clear")
+        anchor = listed_offset(STAGE / "out" / "fphase.lst", "gap_six")
+        raise SystemExit(
+            "phase_until_clear linked bytes differ from flash\n"
+            f"got   {phase.hex()}\n"
+            f"flash {flash_phase.hex()}\n"
+            f"gap_six at {anchor}, phase_until_clear at {where}, "
+            f"expected {section_off(PHASE)}"
+        )
     stub = probe_bin[section_off(ISSUE):section_off(ISSUE) + STUB]
     if stub != bytes.fromhex("0b004360"):
         raise SystemExit(f"issue_command stub drifted: {stub.hex()}")
     outputs = (
-        ("reject_code", reject),
-        ("retry_issue", retry),
-        ("run_transfer", run),
+        ("reject_code", reject, 4),
+        ("retry_issue", retry, 4),
+        ("run_transfer", run, 4),
+        ("phase_until_clear", phase, 2),
     )
-    for name, blob in outputs:
+    for name, blob, align in outputs:
         path = ROOT / "build" / "services" / f"{name}.o"
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(sh4.write_elf(blob, name, align=4))
+        path.write_bytes(sh4.write_elf(blob, name, align=align))
     print(f"compiler: Hitachi SHC 5.1 Release 04, {PIN_FLAGS}")
     print("not re-flagged: -nospeed, -speed, -size, -rtnext, and -cpu=sh4 stay off")
     print(f"matched C: reject_code {REJECT_SIZE} bytes at 0x{REJECT_ENTRY:x}")
     print(f"matched C: retry_issue {RETRY_SIZE} bytes at 0x{RETRY:x}")
     print(f"matched C: run_transfer {RUN_SIZE} bytes at 0x{RUN:x}")
+    print(f"matched C: phase_until_clear {PHASE_SIZE} bytes at 0x{PHASE:x}")
     print(retry.hex())
     print(run.hex())
+    print(phase.hex())
 
 
 if __name__ == "__main__":

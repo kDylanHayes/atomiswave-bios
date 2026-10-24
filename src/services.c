@@ -8,9 +8,11 @@
  * tools/link_matched.py compiles reject_code by itself, with $G0 at 0.
  * It compiles retry_issue and run_transfer in a second unit, with static
  * stubs at the flash distances, so their bsr displacements match.
- * The other schedules in this file stay unlinked. An extern compiles as
- * jsr. A bsr needs a static callee in the same unit. This file is the
- * schedule source. It is not the flash image.
+ * phase_until_clear is a third unit. A 6-byte spacer occupies the
+ * prime_count68 slot so this function starts at 0xA1DA. The other
+ * schedules in this file stay unlinked. An extern compiles as jsr. A
+ * bsr needs a static callee in the same unit. This file is the schedule
+ * source. It is not the flash image.
  *
  * hole_09cdc, step_phase, and issue_command are named from the bsr
  * targets. Their bodies are not in this file. An extern compiles as jsr.

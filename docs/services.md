@@ -1,6 +1,6 @@
 # Service cluster
 
-The ABI-shaped code is flash `0x9E34` through `0xA49C`. `reject_code`, `retry_issue`, and `run_transfer` are matched C. Every other range here is checked assembly. Boot code below `0xA00` keeps the names already in `asm/boot/`.
+The ABI-shaped code is flash `0x9E34` through `0xA49C`. `reject_code`, `phase_until_clear`, `retry_issue`, and `run_transfer` are matched C. Every other range here is checked assembly. Boot code below `0xA00` keeps the names already in `asm/boot/`.
 
 `step_phase` installs GBR = `0x8C000000` and restores the caller's GBR before it returns. Other routines use whatever GBR the caller left. Offsets below are displacements from that base. `$G0` is 128 bytes, so the second window starts at GBR+128.
 
@@ -24,7 +24,7 @@ An AI assigned every name in this table. The flash does not contain them. `servi
 | `0xA15E` | `ram_call_2` | Tail call `0x8C0010F0(0, 0, 0, 2)`. |
 | `0xA16A` | `ram_call_3` | Tail call `0x8C0010F0(0, 0, 0, 3)`. The other 94 bytes of the range are the shared pool. |
 | `0xA1D4` | `prime_count68` | Loads the halfword at `0xA0E6` (`0x65A3`) into GBR+68. |
-| `0xA1DA` | `phase_until_clear` | Stores `r4` at GBR+146, then calls the `0x9CDC` hole and `step_phase` until the result is `>= 0`. |
+| `0xA1DA` | `phase_until_clear` | Stores `r4` at GBR+146, then calls the `0x9CDC` hole and `step_phase` until the result is `>= 0`. Matched C. |
 | `0xA1F4` | `scan_list` | Walks a byte list passed in `r4`, with a bound in `r5`. |
 | `0xA354` | `retry_issue` | Calls the `0x9CDC` hole and `issue_command(r4)` until the result is `>= 0`. Matched C. |
 | `0xA370` | `run_transfer` | Stores 10 at GBR+70, then runs `issue_command(0)` and, on 0, `issue_command(1)`. Matched C. |
@@ -95,6 +95,8 @@ The clamp compares the new phase with GBR+146. A phase below that limit becomes 
 
 `retry_issue` and `run_transfer` are matched C. The link unit gives their static callees the flash distances: an empty `hole_09cdc`, 317 empty globals, an empty `prime_count68`, 95 empty globals, then the two functions, then `issue_command` as `return arg`. Those stubs are 4 bytes. They hold the call sites in place. The real `prime_count68` and `issue_command` bodies stay assembly.
 
-`ram_window_ready`, `set_hook`, `ram_call_2`, `ram_call_3`, `prime_count68`, and `phase_until_clear` have schedules in `src/services.c`. They are not linked. `prime_count68` in that file stores `0x65A3`, which is the halfword at `0xA0E6`. An earlier schedule used 600. That value is the halfword at `0xA2E6`, and it is not the one this instruction loads.
+`phase_until_clear` is matched C in its own unit. The unit's `step_phase` is a 4-byte stub, and a 6-byte `gap_six` fills the `prime_count68` slot so the function starts at `0xA1DA`. Those are distances, not the real bodies.
+
+`ram_window_ready`, `set_hook`, `ram_call_2`, `ram_call_3`, and `prime_count68` have schedules in `src/services.c`. They are not linked. `prime_count68` in that file stores `0x65A3`, which is the halfword at `0xA0E6`. An earlier schedule used 600. That value is the halfword at `0xA2E6`, and it is not the one this instruction loads.
 
 `service_main` loads its literals from the pool in `ram_call_3`, file `0xA178` through `0xA1D0`. The halfword at `0xA0E6` sits in `service_main`, between a `bf` and its target. `prime_count68` loads it. When `r11` is 0 those bytes also execute: `mov r10, r5`, then `bra` over the following load of `r5`, with `add #16, r5` in the delay slot. `r5` is then `r10 + 16`. When `r11` is not 0, the `bf` skips them and `r5` is the pool constant `0xB06E`. `r4` is `0x8C010000` on both paths.

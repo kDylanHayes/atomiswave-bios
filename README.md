@@ -10,7 +10,7 @@ The ROM images are not in this repo. A local bios0 is checked against SHA-1 `b4c
 
 ## Matching status
 
-Matched C is `reject_code` (28 bytes at `0x9E34`), `retry_issue` (28 bytes at `0xA354`), and `run_transfer` (48 bytes at `0xA370`). The compiler is pinned: Hitachi SHC 5.1 Release 04, `-cpu=sh3 -endian=little -optimize=1`. The build links those functions and checks the linked bytes. `retry_issue` and `run_transfer` share a unit whose static callees sit at the flash distances. `src/services.c` also holds schedules that are not linked into the image. Field names and the phase machine are in `docs/services.md`. The compiler pin is in `docs/compiler.md`.
+Matched C is `reject_code` (28 bytes at `0x9E34`), `phase_until_clear` (26 bytes at `0xA1DA`), `retry_issue` (28 bytes at `0xA354`), and `run_transfer` (48 bytes at `0xA370`). The compiler is pinned: Hitachi SHC 5.1 Release 04, `-cpu=sh3 -endian=little -optimize=1`. The build links those functions and checks the linked bytes. `retry_issue` and `run_transfer` share a unit whose static callees sit at the flash distances. `phase_until_clear` is linked in its own unit, because it starts two bytes off a 4-byte boundary. `src/services.c` also holds schedules that are not linked into the image. Field names and the phase machine are in `docs/services.md`. The compiler pin is in `docs/compiler.md`.
 
 Every other code range is checked assembly. `make` places those bytes, plus the linked C bytes, and copies the ROM only for addresses no object covers (font, tables, padding). Holes at `0x9CDC` and `0x9D52`, and the 12-byte footer, keep their original bytes. The reconstructed image SHA-1 is the bios0 digest above. Unplaced code is 0 bytes.
 
@@ -20,6 +20,6 @@ Every other code range is checked assembly. `make` places those bytes, plus the 
 make
 ```
 
-That refreshes the split, assembles every unit, links the three matched functions, and fails unless the image matches.
+That refreshes the split, assembles every unit, links the four matched functions, and fails unless the image matches.
 
 A clean clone cannot finish that. `make` needs the local bios0 image at `~/Documents/awbios/bios0.ic23`, the Hitachi tools extracted to `~/Documents/awbios/shc`, and the Boxedwine prefix under `~/Documents/awbios/boxedwine`. The compiler and the ROM are not in this repo.

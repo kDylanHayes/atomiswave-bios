@@ -26,12 +26,13 @@ The compiler is not in this repo. The local copy is
 `~/Documents/awbios/shc`, extracted from the Katana R9 cab next to
 `bios0.ic23`. `shc.exe` identifies itself as SH SERIES C/C++ Compiler
 Ver. 5.1 (Release 04). Matched C is `reject_code` (28 bytes at
-`0x9E34`), `retry_issue` (28 bytes at `0xA354`), and `run_transfer`
-(48 bytes at `0xA370`). `reject_code` is linked on its own with `$G0` at 0.
-`retry_issue` and `run_transfer` are linked together. `src/services.c` also
-holds schedules for `ram_window_ready`, `set_hook`, `ram_call_2`,
-`ram_call_3`, `prime_count68`, and `phase_until_clear`. Linking that whole
-file does not reproduce the flash. The pin still caches a repeated 0 in a
+`0x9E34`), `phase_until_clear` (26 bytes at `0xA1DA`), `retry_issue`
+(28 bytes at `0xA354`), and `run_transfer` (48 bytes at `0xA370`).
+`reject_code` is linked on its own with `$G0` at 0. `retry_issue` and
+`run_transfer` are linked together. `phase_until_clear` is a third unit.
+`src/services.c` also holds schedules for `ram_window_ready`, `set_hook`,
+`ram_call_2`, `ram_call_3`, and `prime_count68`. Linking that whole file
+does not reproduce the flash. The pin still caches a repeated 0 in a
 callee-saved register, hoists the GBR install above the first push, and
 keeps a promoted value across a call. Those ranges are checked assembly in
 `asm/services/`. `-nospeed`, `-speed`, `-size`, `-rtnext`, and `-cpu=sh4`
@@ -52,7 +53,7 @@ stub of that size.
 | `0xA15E` | 12 | `ram_call_2` | tail `jmp` to `0x8C0010F0` with args `(0,0,0,2)` |
 | `0xA16A` | 12 | `ram_call_3` | same tail call with `(0,0,0,3)`. The following bytes are a literal pool, not this function |
 | `0xA1D4` | 6 | `prime_count68` | loads halfword `0x65A3` from `0xA0E6` into GBR+68 in the `rts` delay slot. 600 is the halfword at `0xA2E6` and is not this load |
-| `0xA1DA` | 26 | `phase_until_clear` | same loop schedule as `0xA354`, plus the short store |
+| `0xA1DA` | 26 | `phase_until_clear` | linked bytes match the flash |
 | `0xA354` | 28 | `retry_issue` | linked bytes match the flash |
 | `0xA370` | 48 | `run_transfer` | linked bytes match the flash |
 
@@ -72,9 +73,21 @@ order. `retry_issue` is static and is called from the global
 fills the GBR+70 store as `C123`. `rof2bin` extracts P from `0` through
 `0x6C8`. The slices at `0x678` and `0x694` are the flash bytes. The stubs
 hold entry points. `prime_count68` in the image is still the 6-byte pool
-load, and `issue_command` is still the 252-byte body. `phase_until_clear`
-is 26 bytes at `0xA1DA` (2-mod-4). A 4-byte pad cannot place it on that
-address without shifting `retry_issue`, so it stays a schedule.
+load, and `issue_command` is still the 252-byte body.
+
+`phase_until_clear` starts at `0xA1DA` because `prime_count68` is 6 bytes.
+That address is 2-mod-4, so this function cannot share the retry unit:
+another 4-byte stub would shift `retry_issue`. Its own unit starts at the
+same hole. A 4-byte `hole_09cdc`, 98 empty globals, a 4-byte `step_phase`
+that returns 0, and 218 empty globals reach `0xA1D4`. `gap_six` is
+`return value + 1`, which this compiler emits as 6 bytes (`mov r4,r0`,
+`rts`, `add #1,r0` in the delay slot) and does not follow with a literal
+pool or an alignment pad. `phase_until_clear` therefore starts at
+`0xA1DA`. The two calls are `bsr` because the callees are static. A
+trailing `keep_lo` reads `lo.code_72`, which keeps `$G0` at 128 bytes.
+`$G1` follows it, and the linker fills the store as `C149` (GBR+146).
+`rof2bin -e=518` is the exclusive end of the 26-byte slice. `gap_six` and
+`keep_lo` are not flash functions. The real `step_phase` stays assembly.
 
 GBR variables use `#pragma gbr_base (lo)` and `#pragma gbr_base1 (hi)`.
 The parenthesis form is required, and the pragma comes before the

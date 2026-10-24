@@ -7,9 +7,10 @@ literals that sit in another function's span. Decoder mistakes for ldc/lds,
 indexed mov.b/mov.w, and the GBR bit ops are corrected here. decode() itself
 stays as it was so the split does not move.
 
-The three handwritten boot files are left alone. reject_code, retry_issue,
-and run_transfer are matched C and are not emitted. A stale .s file for one
-of those names is removed so the assembly wildcard does not rebuild it.
+The three handwritten boot files are left alone. reject_code,
+phase_until_clear, retry_issue, and run_transfer are matched C and are
+not emitted. A stale .s file for one of those names is removed so the
+assembly wildcard does not rebuild it.
 Output is byte-checked against the ROM before it is written.
 This is assembly. It is not matched C.
 """
@@ -27,7 +28,7 @@ import sh4
 
 ROOT = Path(__file__).resolve().parents[1]
 HANDWRITTEN = {"mix_shifts", "copy_words", "poll_bit"}
-MATCHED_C = {"reject_code", "retry_issue", "run_transfer"}
+MATCHED_C = {"reject_code", "phase_until_clear", "retry_issue", "run_transfer"}
 # bsr lands inside the erased holes, not only at their starts.
 HOLE_LABELS = {
     "hole_09cdc": (0x9CE2,),
