@@ -510,3 +510,43 @@ was built with 6.0B or a build with identical codegen, and that the two
 remaining gaps are source shape: `list` must be allocated to `R12`
 before the derived pointers, and the `0x8C000598`/`0x8C000800` calls
 must stay in the pool rather than being cached in registers.
+
+## Allocation experiments: extern calls and the hoist fingerprint
+
+`docs/candidates/scan_list_ext.c` declares the four `0x8C00xxxx`
+targets as externals and binds them with the linker
+(`DEFINE sym(address)`). That is the source shape the flash implies:
+
+- 6.0B stops caching `0x8C000800` in a callee-saved register and emits
+  `MOV.L pool,R3 ; JSR @R3` at the call site, exactly like the flash's
+  `mov.l .La300,r2 ; jsr r2`.
+- The literal-cast form instead hoists the address into `R8`/`R9` and
+  forces `saved` into `R10`.
+
+With extern calls the 6.0B frame is 40 bytes and the loop preheader is:
+
+```
+MOV #10,R8      ; gbr.count_70 = 10, hoisted
+MOV #59,R9      ; *p = 59, hoisted
+MOV #2,R10      ; flags & 2, hoisted
+MOV #0x96,R11
+```
+
+The flash instead keeps `R8=2`, `R9=saved byte`, `R10=0x6DDD0`,
+`R11=0x96`, and re-materialises `10` and `59` with `mov #imm` inside
+the loop. `saved` therefore lives in `R9` and the frame stays 36 bytes.
+
+That hoist set is a compiler-build fingerprint, not a source shape:
+
+| build | frame | loop constants hoisted |
+|---|---:|---|
+| 6.0A | 40 | 10, 59, 2 |
+| 6.0B | 40 | 10, 59, 2 |
+| 6.0C | 40 | 10, 59, 2 |
+| 6.0AD R04 | 32 | none; whole frame spilled, `list` in `R14` |
+| flash | 36 | 2, 0x96, 0x6DDD0 |
+
+Marking `gbr` or `p` volatile changes nothing. Every 6.0A/B/C build
+over-hoists; R04 under-hoists and spills. The BIOS build sits between
+them, which is consistent with the official post-evaluation Adria
+release (R05, planned for October 2000) rather than R04 or 6.0B.
