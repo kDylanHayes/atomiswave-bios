@@ -464,3 +464,49 @@ SHA-1. `service_main` and `scan_list` still stay assembly.
   toolchain limitation now worked around by `tools/as_shc_src.py`.
 
 The image SHA-1 stays `b4c1a26bc8906d5275eb28c701dff2b9365bcdfa`.
+
+## Search round 2: the SystemX SDK and a corrected 6.0AD test
+
+The 2001 BIOS is SI Electronics "System X" Version 01.00. The SDK that
+built it was never public, so this round chased the artefacts and the
+people around it:
+
+- **Katana SDK R11b (2001-02-27)** ships `Utl/Dev/Hitachi/shc.exe`
+  version **5.1 (Release11)**, PE date 2000-02-08. The public Katana
+  line ends there and never carries a 6.0 compiler
+  (`sega-dreamcast-katana-sdk-r11b-inventory`).
+- **Naomi SDK 001002** (2000-10-02) carries only the 5.0/5.1 tool
+  packages (`pcv5r*.zip`, `sgiv5r*.tgz`). **Kunoichi SDK 2.02** is the
+  only public Sega SDK with 6.0AD, and it is R04.
+- The **Atomiswave dev kit HDD** (NeoTurfMasta, 2017) was promised for
+  release but no image is on archive.org under `GDIMG`, SystemX,
+  Atomiswave, or the owner's name. The 2020 Dreamcast-Talk "katana
+  files" thread is a Take the Bullet prototype HDD, not an SDK.
+- The Adria package identifies itself as product `P-HAP4ADRIA`, config
+  `V00-02` (`we2_c_shcross.cfg.ver3`). Neither string is indexed
+  anywhere public.
+
+**6.0AD needs `ADRIA_CMD_CONFIGFILE_C`.** Without it `badria_SHCROSS`
+prints "Object not created" for every input, including a two-line test
+file, and reports no error. With
+`ADRIA_CMD_CONFIGFILE_C=C:\...\we2_c_shcross.cfg.ver3` it compiles.
+Earlier 6.0AD probes that failed silently should be re-read with that in
+mind; the results below are from a working setup.
+
+Re-tested with a working R04:
+
+- `scan_list`: frame 32, saves only `R13`/`R14`, keeps the bound in
+  `R14`, and spills `list` to the stack. The flash saves `R8`-`R14` and
+  keeps `list` in `R12` with derived pointers in `R13`/`R14`.
+- `issue_command`: saves `PR` before `TST R4,R4`, branches with `BT/S`
+  (flash `BF/S`), and emits a different pool. On the canonical 6.0B
+  source it dies with `Internal Error: adr_asmout.c:619` after emitting
+  a partial listing.
+
+So 6.0AD R04 is not the build. The only compiler that still reproduces
+`issue_command` 252/252 bytes, and the flash's seven-register frame for
+`scan_list`, is **6.0B**. The working hypothesis is now that the BIOS
+was built with 6.0B or a build with identical codegen, and that the two
+remaining gaps are source shape: `list` must be allocated to `R12`
+before the derived pointers, and the `0x8C000598`/`0x8C000800` calls
+must stay in the pool rather than being cached in registers.
