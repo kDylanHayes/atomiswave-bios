@@ -446,16 +446,19 @@ SHA-1. `service_main` and `scan_list` still stay assembly.
 ## What would close the remaining two
 
 - The same 6.0B pipeline applied to a reconstructed `service_main` and
-  `scan_list` C source. A first `scan_list` candidate is
-  `docs/candidates/scan_list_60b.c`. 6.0B compiles it to 159
-  instructions against the flash's 161; the loop, types, GBR stores, and
-  fixed-address calls are structurally right, but the allocator assigns
-  `list` to `R13` (flash `R12`), `saved`/`0x6DDD0` to `R10`/`R9` (flash
-  `R9`/`R10`), and caches the `0x8C000598`/`0x8C000800` callbacks
-  instead of reloading them from the pool each pass. 5.1 gives the same
-  register order; 6.0AD spills the frame. `service_main` was not
-  reconstructed; its 346-byte state machine needs the same source-level
-  work.
+  `scan_list` C source. The best `scan_list` candidate is
+  `docs/candidates/scan_list_60b.c`. A struct-pointer source shape makes
+  6.0B emit the flash's indexed loads (`mov #25,r0 ; mov.b
+  @(r0,r14),...`), and 113 of the flash's 161 instructions align. The
+  remaining gap is the callee-saved allocation: `list` goes to `R13`
+  (flash `R12`), `p`/`entry` to `R12` (flash `R13`), `saved`/`0x6DDD0`
+  to `R10`/`R9` (flash `R9`/`R10`), and the
+  `0x8C000598`/`0x8C000800` callbacks are cached instead of reloaded
+  from the pool. 5.0, 5.1, 6.0A/B/C and 6.0AD all fail this allocation
+  in the same way (6.0AD spills the frame). Closing it with a
+  canonicaliser means rewriting the loop's register assignment and call
+  schedule, not a small peephole. `service_main` was not reconstructed;
+  its 346-byte state machine needs the same source-level work.
 - An assembler that keeps a referenced `.DATA` pool inline when the
   pool lies between a conditional branch and its target; this is the
   toolchain limitation now worked around by `tools/as_shc_src.py`.
