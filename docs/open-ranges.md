@@ -591,3 +591,14 @@ No other 2001+ NAOMI/System SP SDK disc is public or listed: searches
 for `Kunoichi 2.05/2.06`, `NAOMI SDK` updates after 001002, and
 System SP SDK material return nothing. The Atomiswave SystemX SDK and
 its HDD remain unobtained.
+
+Market scan for the 2.04 disc (2026-10-28): the only copies on sale
+are Mercari `m14380387223` at ¥98,000 (about $650) and two eBay
+listings at $1,069 and $1,080. The same Mercari seller also lists
+Kunoichi 2.02 at ¥98,000 (`m23996491991`). No current Yahoo Auctions
+listing; a 2.02 sold there for ¥11,611 in April 2025, so cheaper copies
+do surface. No 2.05/2.06 exists publicly. The practical routes are a
+proxy purchase of the Mercari disc (ZenMarket/FromJapan), a saved
+search for a cheaper Yahoo listing, or a crowdfunded buy-and-dump via
+the Arcade-Projects NAOMI SDK thread where 001002 and 2.02 were
+previously acquired and released.
