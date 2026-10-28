@@ -602,3 +602,38 @@ proxy purchase of the Mercari disc (ZenMarket/FromJapan), a saved
 search for a cheaper Yahoo listing, or a crowdfunded buy-and-dump via
 the Arcade-Projects NAOMI SDK thread where 001002 and 2.02 were
 previously acquired and released.
+
+## scan_list: source shaping exhausted
+
+`docs/candidates/scan_list_60b_extern.c` combines the three shapes that
+each fixed one gap:
+
+- struct pointer -> the flash's indexed loads
+  (`mov #25,r0 ; mov.b @(r0,r14)`)
+- extern calls bound by the linker -> one literal per call site
+  (`_sys_800` loaded inside the loop, not cached)
+- an explicit `data = &entry->data[0]` local -> the flash's argument
+  order (`mov r14,r4 ; add #33,r4 ; ... ; extu.b ; add r4,r13`)
+
+That build has the flash's **36-byte frame**, saves `R8`-`R14`, emits
+`tst r8,r2`, `cmp/hs`, and the same `_sys_598` call sequence. After
+permuting `R8`-`R14` to the best alignment, 93 of 161 instructions are
+identical.
+
+The rest is the allocator, not the source. Six structural variants were
+compiled (pointer initialised at declaration, entry initialised at
+declaration, both, `p` split from `list`, post-call copies,
+declaration-order permutations). Every one gives the parameter `R13`
+and the derived entry pointer `R12`; the flash gives the parameter
+`R12` and the derived pointer `R13`. The compiler also hoists one or
+two of `10`, `59`, `2`, `0x96` into callee-saved registers, while the
+flash hoists only `2`, `0x96`, `0x6DDD0`. That trade moves with
+register pressure but never lands on the flash's set.
+
+`service_main` is worse: it contains hand-scheduled SR manipulation and
+a branch into the middle of an instruction pair at `0xA0E6`
+(`.word 0x65A3` / `.long 0x7510A001`). No C compiler emits that.
+
+With the Adria line unobtained, both remaining units are at the
+compiler boundary. Growing the C gate further requires a canonicalised
+listing (the `issue_command` route), not more source work.
