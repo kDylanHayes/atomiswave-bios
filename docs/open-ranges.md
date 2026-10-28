@@ -446,8 +446,16 @@ SHA-1. `service_main` and `scan_list` still stay assembly.
 ## What would close the remaining two
 
 - The same 6.0B pipeline applied to a reconstructed `service_main` and
-  `scan_list` C source. Both are still one function each and have no C
-  candidate.
+  `scan_list` C source. A first `scan_list` candidate is
+  `docs/candidates/scan_list_60b.c`. 6.0B compiles it to 159
+  instructions against the flash's 161; the loop, types, GBR stores, and
+  fixed-address calls are structurally right, but the allocator assigns
+  `list` to `R13` (flash `R12`), `saved`/`0x6DDD0` to `R10`/`R9` (flash
+  `R9`/`R10`), and caches the `0x8C000598`/`0x8C000800` callbacks
+  instead of reloading them from the pool each pass. 5.1 gives the same
+  register order; 6.0AD spills the frame. `service_main` was not
+  reconstructed; its 346-byte state machine needs the same source-level
+  work.
 - An assembler that keeps a referenced `.DATA` pool inline when the
   pool lies between a conditional branch and its target; this is the
   toolchain limitation now worked around by `tools/as_shc_src.py`.
