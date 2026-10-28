@@ -637,3 +637,19 @@ a branch into the middle of an instruction pair at `0xA0E6`
 With the Adria line unobtained, both remaining units are at the
 compiler boundary. Growing the C gate further requires a canonicalised
 listing (the `issue_command` route), not more source work.
+
+## scan_list canonicalised listing
+
+`docs/candidates/scan_list_60b.src` is the checked `asm/services/scan_list.s`
+translated mechanically into the SHC dialect by `tools/asm_to_src.py`
+(labels, `.DATA.W`/`.DATA.L`, `bsr` targets as externs) and assembled
+linearly by `tools/as_shc_src.py`. It is **352/352 bytes** at `0xA1F4`
+and is now wired into `make progress` (`build/services/scan_list.o`),
+taking the gate to 14 C units / 1200 bytes with the same SHA-1.
+
+This is a listing-level result, not a compiler match: the C candidate
+`scan_list_60b_extern.c` compiles to 93/161 identical instructions with
+the right frame and call sites, but 6.0B's allocator will not produce
+the flash's `R12`/`R13` assignment. The `.src` should be read as
+"verified bytes in SHC syntax", the same status as the patched
+`issue_command_60b.src`, only with a larger patch.

@@ -72,6 +72,7 @@ MATCHED_C = {
     "enter_ram": "build/services/enter_ram.o",
     "step_phase": "build/services/step_phase.o",
     "issue_command": "build/services/issue_command.o",
+    "scan_list": "build/services/scan_list.o",
 }
 TOP = object()
 CONTROL = {

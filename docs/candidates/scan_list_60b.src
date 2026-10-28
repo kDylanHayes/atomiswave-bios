@@ -1,0 +1,198 @@
+.SECTION    P,CODE,ALIGN=4
+scan_list:
+          MOV.L       R14,@-R15
+          MOV.L       R13,@-R15
+          MOV.L       R12,@-R15
+          MOV         R4,R12
+          MOV.L       L_a2f0,R3
+          MOV.L       R11,@-R15
+          MOV.L       R10,@-R15
+          MOV.L       R9,@-R15
+          MOV.L       R8,@-R15
+          STS.L       PR,@-R15
+          ADD         #-4,R15
+          MOV.L       R5,@R15
+          JSR         @R3
+          MOV         R12,R4
+          MOV         R12,R14
+          MOV         R12,R13
+          MOV         #17,R0
+          MOV.L       R0,@(GBR,236)
+          MOV.L       @R15,R0
+          MOV.L       R0,@(GBR,240)
+          MOV         #1,R0
+          MOV.L       R0,@(GBR,244)
+          MOV         R13,R0
+          MOV.L       R0,@(GBR,248)
+          MOV         #0,R0
+          BSR         X_A370
+          MOV.L       R0,@(GBR,252)
+          TST         R0,R0
+          BT          L_a232
+          BRA         L_a33e
+          NOP         
+L_a232:
+          MOV.L       L_a2f4,R2
+          JSR         @R2
+          MOV         R14,R4
+          TST         R0,R0
+          BT          L_a240
+          BRA         L_a33e
+          NOP         
+L_a240:
+          MOV.W       L_a2e8,R4
+          BSR         X_9CE2
+          ADD         R14,R4
+          MOV.W       L_a2ea,R2
+          ADD         R2,R0
+          MOV.L       R0,@(GBR,240)
+          MOV         #1,R0
+          MOV.L       R0,@(GBR,244)
+          MOV         R13,R0
+          MOV.L       R0,@(GBR,248)
+          MOV         #0,R0
+          MOV.L       R0,@(GBR,252)
+          MOV         #17,R0
+          BSR         X_A370
+          MOV.L       R0,@(GBR,236)
+          MOV         R13,R14
+          MOV.L       L_a2f8,R10
+          MOV         #2,R8
+          MOV.W       L_a2ea,R11
+          MOV.W       L_a2ec,R2
+          ADD         R2,R13
+          BRA         L_a332
+          MOV.L       R13,@R15
+L_a26e:
+          MOV         #25,R0
+          MOV.B       @(R0,R14),R2
+          EXTU.B      R2,R2
+          TST         R8,R2
+          BF          L_a32c
+          MOV         #32,R0
+          MOV         R14,R4
+          MOV.B       @(R0,R14),R5
+          MOV         #59,R3
+          ADD         #33,R4
+          EXTU.B      R5,R13
+          ADD         R4,R13
+          MOV.B       @R13,R9
+          MOV.B       R3,@R13
+          MOV.L       @(GBR,156),R0
+          MOV.L       L_a2fc,R2
+          JSR         @R2
+          MOV         R0,R5
+          TST         R0,R0
+          BF          L_a32a
+          MOV         R14,R4
+          BSR         X_9CE2
+          ADD         #14,R4
+          MOV         R0,R13
+          MOV         R14,R4
+          BSR         X_9CE2
+          ADD         #6,R4
+          MOV         R0,R14
+          ADD         R11,R14
+          CMP/HS      R10,R14
+          BT          L_a2ba
+          MOV.B       @(GBR,36),R0
+          EXTU.B      R0,R0
+          CMP/EQ      #2,R0
+          BT          L_a2ba
+          MOV.L       L_a300,R2
+          JSR         @R2
+          MOV         #1,R4
+L_a2ba:
+          MOV         R14,R0
+          MOV.L       R0,@(GBR,240)
+          MOV.W       L_a2ee,R0
+          ADD         R13,R0
+          SHLR8       R0
+          SHLR2       R0
+          SHLR        R0
+          MOV.L       R0,@(GBR,244)
+          MOV.B       @(GBR,36),R0
+          EXTU.B      R0,R0
+          TST         R0,R0
+          BT          L_a2d6
+          BRA         L_a2d8
+          MOV         #0,R0
+L_a2d6:
+          MOV         R12,R0
+L_a2d8:
+          MOV.L       R0,@(GBR,248)
+          MOV.B       @(GBR,36),R0
+          EXTU.B      R0,R0
+          TST         R0,R0
+          BT          L_a304
+          BRA         L_a306
+          MOV         R13,R0
+          .DATA.W     H'0258'
+L_a2e8:
+          .DATA.W     H'00A2'
+L_a2ea:
+          .DATA.W     H'0096'
+L_a2ec:
+          .DATA.W     H'0800'
+L_a2ee:
+          .DATA.W     H'07FF'
+L_a2f0:
+          .DATA.L     H'8C0004D8'
+L_a2f4:
+          .DATA.L     H'8C000590'
+L_a2f8:
+          .DATA.L     H'0006DDD0'
+L_a2fc:
+          .DATA.L     H'8C000598'
+L_a300:
+          .DATA.L     H'8C000800'
+L_a304:
+          MOV         #0,R0
+L_a306:
+          MOV.L       R0,@(GBR,252)
+          MOV         #10,R0
+          BSR         X_A1D4
+          MOV.W       R0,@(GBR,70)
+          MOV.B       @(GBR,36),R0
+          EXTU.B      R0,R0
+          TST         R0,R0
+          BT          L_a31a
+          BRA         L_a31c
+          MOV         #28,R0
+L_a31a:
+          MOV         #17,R0
+L_a31c:
+          MOV.L       R0,@(GBR,236)
+          BSR         X_A354
+          MOV         #0,R4
+          BSR         X_9CDC
+          NOP         
+          BRA         L_a340
+          MOV         R13,R0
+L_a32a:
+          MOV.B       R9,@R13
+L_a32c:
+          MOV.B       @R14,R3
+          EXTU.B      R3,R3
+          ADD         R3,R14
+L_a332:
+          MOV.B       @R14,R2
+          TST         R2,R2
+          BT          L_a33e
+          MOV.L       @R15,R3
+          CMP/HS      R3,R14
+          BF          L_a26e
+L_a33e:
+          MOV         #0,R0
+L_a340:
+          ADD         #4,R15
+          LDS.L       @R15+,PR
+          MOV.L       @R15+,R8
+          MOV.L       @R15+,R9
+          MOV.L       @R15+,R10
+          MOV.L       @R15+,R11
+          MOV.L       @R15+,R12
+          MOV.L       @R15+,R13
+          RTS         
+          MOV.L       @R15+,R14
+          .END

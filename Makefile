@@ -15,6 +15,7 @@ C_OBJS := build/services/reject_code.o build/services/ram_window_ready.o \
 	build/services/prime_count68.o build/services/quiet_interrupts.o \
 	build/services/enter_ram.o build/services/step_phase.o
 ISSUE_OBJ := build/services/issue_command.o
+SCAN_OBJ := build/services/scan_list.o
 LINK_DEPS := src/services.c tools/link_matched.py tools/sh4.py
 
 .PHONY: all split probe progress
@@ -43,8 +44,14 @@ $(ISSUE_OBJ): docs/candidates/issue_command_60b.src tools/as_shc_src.py
 	$(PYTHON) tools/as_shc_src.py $< -o $@ --origin 0xA3A0 --symbol issue_command \
 		--extern '__$$reject_code=0x9E34' --extern '__$$prime_count68=0xA1D4' --check $(ROM)
 
+$(SCAN_OBJ): docs/candidates/scan_list_60b.src tools/as_shc_src.py
+	@mkdir -p $(dir $@)
+	$(PYTHON) tools/as_shc_src.py $< -o $@ --origin 0xA1F4 --symbol scan_list \
+		--extern 'X_A370=0xA370' --extern 'X_9CE2=0x9CE2' --extern 'X_A1D4=0xA1D4' \
+		--extern 'X_A354=0xA354' --extern 'X_9CDC=0x9CDC' --check $(ROM)
+
 probe:
 	$(PYTHON) tools/probe_compiler.py
 
-progress: split $(ASM_OBJS) $(C_OBJS) $(ISSUE_OBJ) probe
+progress: split $(ASM_OBJS) $(C_OBJS) $(ISSUE_OBJ) $(SCAN_OBJ) probe
 	$(PYTHON) tools/progress.py
