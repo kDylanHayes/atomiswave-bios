@@ -550,3 +550,44 @@ Marking `gbr` or `p` volatile changes nothing. Every 6.0A/B/C build
 over-hoists; R04 under-hoists and spills. The BIOS build sits between
 them, which is consistent with the official post-evaluation Adria
 release (R05, planned for October 2000) rather than R04 or 6.0B.
+
+## Undumped disc lead: Kunoichi SDK 2.04 (2001-03-23)
+
+The Kunoichi line is the only Sega SDK that ships the Adria
+(`utl/dev/hitachi_ad`) compiler. Version 2.02 (2000-11-22) carries
+**6.0AD R04**, the evaluation build. A later disc exists and is
+**undumped**:
+
+```
+Kunoichi SDK 2.04   March 23, 2001   (C) SEGA CORPORATION, 2001
+```
+
+The date is printed on the CD label (Mercari item `m14380387223`,
+photos `m14380387223_1.jpg` / `_2.jpg`; also eBay 188320099138,
+287290577333, 227388792444 and a second Mercari listing for 2.02,
+`m23996491991`). Asking price is ¥98,000. The disc is an InstallShield
+package with the same layout as 2.02, including `kn2ver.txt`,
+`kunoichi2.txt`, `version2.txt`, `release.txt`, `upgrade.txt`,
+`set_nm2.bat` and the `utl` tree.
+
+Why this is the target: it is the only public 2001 Sega SDK disc, it is
+dated seven months after Adria R04 and in the same year as the
+Atomiswave BIOS, and every other Sega SDK of that date is ruled out —
+Katana R11b (2001-02-28) still ships **SHC 5.1 R11**. If the 6.0AD R05
+official release shipped anywhere, it is almost certainly here.
+
+On acquisition, check in this order:
+
+1. `utl/dev/hitachi_ad/shc.exe` banner (`SH SERIES C/C++ Compiler
+   Ver. ...`) and its PE date.
+2. `kn2ver.txt`, `version2.txt`, `release.txt`, `upgrade.txt` for the
+   bundled tool versions.
+3. Compile `docs/candidates/scan_list_ext.c` and compare the loop
+   preheader: the target build keeps `10`/`59` as immediates, keeps
+   `R8=2`, `R9=saved`, `R10=0x6DDD0`, `R11=0x96`, and returns a
+   36-byte frame with `list` in `R12`.
+
+No other 2001+ NAOMI/System SP SDK disc is public or listed: searches
+for `Kunoichi 2.05/2.06`, `NAOMI SDK` updates after 001002, and
+System SP SDK material return nothing. The Atomiswave SystemX SDK and
+its HDD remain unobtained.
