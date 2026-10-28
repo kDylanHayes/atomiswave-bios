@@ -107,7 +107,7 @@ def main():
     IMAGE.write_bytes(image)
     c_bytes = sum(fn["end"] - fn["entry"] for fn in c_matched)
     asm_bytes = sum(fn["end"] - fn["entry"] for fn in asm_matched)
-    print(f"compiler: Hitachi SHC 5.1 Release 04, {PIN_FLAGS}")
+    print(f"compiler: Hitachi SHC 5.1 Release 04; issue_command: SHC 6.0B, {PIN_FLAGS}")
     print("not re-flagged: -nospeed, -speed, -size, -rtnext, and -cpu=sh4 stay off")
     print(
         "matched C: "

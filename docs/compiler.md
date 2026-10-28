@@ -27,18 +27,29 @@ The compiler is not in this repo. The local copy is
 `bios0.ic23`. `shc.exe` identifies itself as SH SERIES C/C++ Compiler
 Ver. 5.1 (Release 04). Matched C is `reject_code` (28 bytes at
 `0x9E34`), `ram_window_ready` (24 bytes at `0x9E50`), `set_hook` (6 bytes
-at `0xA158`), `phase_until_clear` (26 bytes at `0xA1DA`), `retry_issue`
-(28 bytes at `0xA354`), and `run_transfer` (48 bytes at `0xA370`).
-`reject_code` is linked on its own with `$G0` at 0. `retry_issue` and
-`run_transfer` are linked together. `phase_until_clear`, `set_hook`, and
-`ram_window_ready` are separate units. `src/services.c` also holds
-schedules for `ram_call_2`, `ram_call_3`, and `prime_count68`. Linking
-that whole file does not reproduce the flash. The pin still caches a
-repeated 0 in a
-callee-saved register, hoists the GBR install above the first push, and
-keeps a promoted value across a call. Those ranges are checked assembly in
-`asm/services/`. `-nospeed`, `-speed`, `-size`, `-rtnext`, and `-cpu=sh4`
-stay off.
+at `0xA158`), `ram_call_2` (12 bytes at `0xA15E`), `ram_call_3` (12
+bytes at `0xA16A`), `prime_count68` (6 bytes at `0xA1D4`),
+`phase_until_clear` (26 bytes at `0xA1DA`),
+`retry_issue` (28 bytes at `0xA354`), `run_transfer` (48 bytes at
+`0xA370`), `quiet_interrupts` (20 bytes at `0xA144`), `enter_ram`
+(46 bytes at `0xA116`), `issue_command` (252 bytes at `0xA3A0`, built
+with SHC 6.0B), and `step_phase` (340 bytes at `0x9E68`).
+These names are reconstructed. The flash has no
+symbol table. `reject_code` is linked on its own with `$G0` at 0.
+`retry_issue` and `run_transfer` are linked together.
+`phase_until_clear`, `set_hook`, `ram_window_ready`, and the two
+`ram_call` functions are separate units. `prime_count68`,
+`quiet_interrupts`, and `enter_ram` are their own units. `issue_command`
+is the 6.0B unit: its source is
+`docs/candidates/issue_command_60b.c`, the compiler is SH SERIES C/C++
+Compiler Ver. 6.0B (recovered from the 2002 `v6bpatch.exe`), and the
+flags are still `-cpu=sh3 -endian=little -optimize=1`. The build
+canonicalises the compiler `.src` (splits the merged literal pool at the
+first `bra` and re-schedules the countdown) and assembles it with
+`tools/as_shc_src.py`, because every Hitachi `asmsh` rejects an inline
+pool after a conditional branch. `service_main` and `scan_list` remain
+checked assembly in `asm/services/`. `-nospeed`, `-speed`, `-size`,
+`-rtnext`, and `-cpu=sh4` stay off.
 
 ## What matched
 
@@ -52,12 +63,15 @@ stub of that size.
 | `0x9E34` | 28 | `reject_code` | linked bytes match the flash |
 | `0x9E50` | 24 | `ram_window_ready` | linked bytes match the flash |
 | `0xA158` | 6 | `set_hook` | linked bytes match the flash |
-| `0xA15E` | 12 | `ram_call_2` | tail `jmp` to `0x8C0010F0` with args `(0,0,0,2)` |
-| `0xA16A` | 12 | `ram_call_3` | same tail call with `(0,0,0,3)`. The following bytes are a literal pool, not this function |
-| `0xA1D4` | 6 | `prime_count68` | loads halfword `0x65A3` from `0xA0E6` into GBR+68 in the `rts` delay slot. 600 is the halfword at `0xA2E6` and is not this load |
+| `0xA15E` | 12 | `ram_call_2` | linked bytes match the flash |
+| `0xA16A` | 12 | `ram_call_3` | linked bytes match the flash. The following 94 bytes are `service_pool` |
+| `0xA116` | 46 | `enter_ram` | linked bytes match the flash. Entry is 2-mod-4. GBR store is `C28D` |
+| `0xA144` | 20 | `quiet_interrupts` | linked bytes match the flash. Address load is `D41C`, GBR store is `C222` |
+| `0xA1D4` | 6 | `prime_count68` | linked bytes match the flash. Stores 600 from the halfword at `0xA2E6` |
 | `0xA1DA` | 26 | `phase_until_clear` | linked bytes match the flash |
 | `0xA354` | 28 | `retry_issue` | linked bytes match the flash |
 | `0xA370` | 48 | `run_transfer` | linked bytes match the flash |
+| `0xA3A0` | 252 | `issue_command` | linked bytes match the flash (SHC 6.0B, canonicalised pool and countdown) |
 
 `0xA354` was also checked as raw halfwords
 `4F22 7FFC 2F42 BCBF 0009 B01F 64F2 6403 4411 8BF8 7F04 4F26 000B 6043`
@@ -74,8 +88,9 @@ order. `retry_issue` is static and is called from the global
 `run_transfer`, so the call is `bsr`. The linker places `$G0` at 0, which
 fills the GBR+70 store as `C123`. `rof2bin` extracts P from `0` through
 `0x6C8`. The slices at `0x678` and `0x694` are the flash bytes. The stubs
-hold entry points. `prime_count68` in the image is still the 6-byte pool
-load, and `issue_command` is still the 252-byte body.
+hold entry points. That unit's `prime_count68` is still the 4-byte
+stub. The real function is matched separately, and `issue_command` is
+still the 252-byte body.
 
 `phase_until_clear` starts at `0xA1DA` because `prime_count68` is 6 bytes.
 That address is 2-mod-4, so this function cannot share the retry unit:
@@ -89,7 +104,9 @@ pool or an alignment pad. `phase_until_clear` therefore starts at
 trailing `keep_lo` reads `lo.code_72`, which keeps `$G0` at 128 bytes.
 `$G1` follows it, and the linker fills the store as `C149` (GBR+146).
 `rof2bin -e=518` is the exclusive end of the 26-byte slice. `gap_six` and
-`keep_lo` are not flash functions. The real `step_phase` stays assembly.
+`keep_lo` are not flash functions. The 4-byte `step_phase` in this unit
+stays a stub so `phase_until_clear` does not move. The real body is its
+own unit.
 
 `set_hook` is `mov.l` / `rts` / `mov.l` to GBR+136. The constant
 `0x8C000C86` is at flash `0xA1CC`, displacement `0x1C`. Compiled alone,
@@ -108,6 +125,53 @@ ends two bytes off a 4-byte boundary, so the compiler writes a halfword
 pad and the long follows it. The linked loads are `C619` and `C613`.
 `rof2bin -e=18` is the 24-byte function. The tail is not in the flash.
 The real bytes at `0x9EFC` stay inside `step_phase`.
+
+`ram_call_2` and `ram_call_3` are the same tail call with `r7` equal to
+2 and 3. Each is `mov #imm, r7` / `mov.l` / `mov #0, r6` / `mov r6, r5`
+/ `jmp @r3` / `mov r6, r4`. The literal is `0x8C0010F0` at flash
+`0xA1D0`. The `mov.l` displacements are `0x1B` and `0x18`. A function
+that starts 4-aligned cannot reach that constant: `0xA15E` is 2-mod-4.
+`gap_six` is the 6-byte prefix. Both functions then share one pool.
+Twenty-two empty globals end the code at offset `0x76`, the compiler
+inserts a halfword pad, and the long sits at `0x78`. `rof2bin -e=1E`
+is the prefix plus both 12-byte functions. The objects are the slices
+at offsets 6 and `0x12`, each aligned to 2. `gap_six` and the pads are
+not in the flash. The real constants from `0xA176` through `0xA1D4`
+stay in `service_pool`.
+
+`prime_count68` is `mov.w` / `rts` / `mov.w` to GBR+68. The PC
+displacement is zero-extended `0x87`, which selects the halfword at
+`0xA2E6` (`0x0258`, decimal 600). Compiled alone, the pool sits at
+offset 6 and the displacement is `0x01`. Sixty-seven empty globals
+push the `.DATA.W` to offset `0x112`. The linked store is `C122`.
+`rof2bin -e=6` is the function. The pads are not in the flash, and
+the halfword at `0xA2E6` stays inside `scan_list`.
+
+`quiet_interrupts` is `set_cr(get_cr() | 0x100000F0)`, then
+`gbr_write_long(136, 0)`, then a store of 0 through `0xA05F6910`, then
+a return of that word. The builtin store keeps 0 in `r0`. The return
+reads the word back in the `rts` delay, and the address stays in `r4`.
+A plain `hi.hook_136 = 0` loads the address before `mov #0`. The two
+flash displacements are `0x1B` and `0x1C`, with `0x8C000000`,
+`0x8C0006AA`, and `0x8C000728` between the constants. Four 6-byte
+functions return those four values first, so the address is the fifth
+pool word. Twenty-three empty globals put the pool at offset `0x88`.
+The function starts at offset `0x18`. `rof2bin -e=2C` and the slice at
+`0x18` are the 20 flash bytes. The prefix and the pads are not in the
+image.
+
+`enter_ram` blocks interrupts, sets VBR to `0x8C000000`, calls
+`0x8C0006AA`, stores `0x8C000728` at GBR+564, writes 8 through
+`0xA05F6910` and reloads that word, clears the block with
+`0xEFFFFF0F`, and jumps through `0x8C000768`. The same source at a
+0-mod-4 entry saves `pr` first and loads the port before `mov #8`.
+Fifteen 6-byte functions return the pool words from `0xEFFFFF0F`
+through `0x8C008100`, so the function starts at offset `0x5A`. The
+prologue is then `stc sr`, the mask load, and `sts.l pr`. The GBR
+store is `C28D` and comes before `mov #8,r3`. Thirteen empty globals
+put the pool at offset `0xBC`. `rof2bin -e=88` and the slice at
+`0x5A` are the 46 flash bytes. The prefix and the pads are not in the
+image. The real pool stays in `service_pool`.
 
 GBR variables use `#pragma gbr_base (lo)` and `#pragma gbr_base1 (hi)`.
 The parenthesis form is required, and the pragma comes before the
@@ -133,10 +197,10 @@ constant in `r0`, and the flash returns through `r4`.
 
 ## Why the other service bodies are assembly
 
-`step_phase`, `service_main`, `enter_ram`, `quiet_interrupts`, `scan_list`, and
-`issue_command` do not match under the pin. Their flash bytes are the
-assembly in `asm/services/`. The notes below are why that C was not
-promoted.
+`service_main`, `scan_list`, and `issue_command` do not match under
+the pin. Their flash bytes are the assembly in `asm/services/`.
+`step_phase` is matched C in its own unit. These names are
+reconstructed. The flash has no symbol table.
 
 `issue_command` uses the same `switch` shape for the 0/1/2/5/6/11/16 test.
 A standalone `switch` emits plain `bt` and the flash displacements
@@ -224,13 +288,6 @@ the same cases. `-rtnext` does emit `extu.w r0,r0`, in the `rts` delay
 of a function whose return type is `unsigned short`. `reject_code` is
 unchanged by that flag. Inlining the same return does not keep the
 extend in `r0`; the caller still gets `extu.w r0,r4`.
-
-`quiet_interrupts` compiled alone has the flash `set_cr` order, zero in `r0`,
-address in `r4`, and the reload in the `rts` delay. The address load
-is still before `mov #0` and the GBR store. In a multi-function file
-the `set_cr` pair swaps. `enter_ram` matches the tail `jmp` / `lds.l pr`,
-the dead word reload, and `and 0xEFFFFF0F`. `sts.l pr` is first, and
-the GBR+564 store is after `mov #8`. Neither schedule is promoted.
 
 Calls to `0x9CDC`, `0x9CE2`, `0x9D52`, and `0x9DB8` are real `bsr`
 instructions into bytes that are zero or erased `0xFF`. They are not

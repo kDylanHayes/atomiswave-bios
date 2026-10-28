@@ -1,6 +1,6 @@
 ! service_main at 0x9FBC
 ! Outer driver for the service cluster. Calls step_phase, issue_command,
-! enter_ram, scan_list, and the RAM addresses in the ram_call_3 pool.
+! enter_ram, scan_list, and the RAM addresses in service_pool.
 ! Checked assembly, not matched C.
 
         .org    0x9fbc
@@ -20,7 +20,7 @@ service_main:
         sts.l pr, @-r15
         ldc r0, sr
         ! AND with 0xEFFFFF0F, then OR 0xF0, was the SR update above.
-        ! ram_call_3, then store 0xFF80 at GBR+146. r12 is 0x8C000800.
+        ! call ram_call_3, then store 0xFF80 at GBR+146. r12 is 0x8C000800.
         ! r14 is 0x8C00C000.
         bsr 0xa16a
         nop
@@ -194,8 +194,7 @@ service_main:
         tst r11, r11
         ! r11 != 0 skips the next three halfwords. r11 == 0 executes
         ! them: mov r10, r5 / bra to the r4 load / add #16, r5.
-        ! The first halfword is 0x65A3 at file 0xA0E6. prime_count68
-        ! loads that same halfword.
+        ! The first halfword is 0x65A3 at file 0xA0E6.
         bf .La0ec
         .word   0x65a3
         .long   0x7510a001

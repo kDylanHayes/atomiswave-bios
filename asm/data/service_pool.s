@@ -1,18 +1,11 @@
-! ram_call_3 at 0xA16A
-! Tail call 0x8C0010F0 with r4 = r5 = r6 = 0 and r7 = 3.
-! Twelve bytes of code. The rest of this range is the shared literal pool.
-! Checked assembly, not matched C.
+! service_pool
+! File 0xA176 through 0xA1D4. Shared literals for the service cluster.
+! ram_call_2 and ram_call_3 jump through 0xA1D0. Not a function.
 
-        .org    0xa16a
-        .global ram_call_3
-ram_call_3:
-        mov #3, r7
-        mov.l .La1d0, r3
-        mov #0, r6
-        mov r6, r5
-        jmp r3
-        mov r6, r4
-        .word   0x0000
+        .org    0xa176
+        .global service_pool
+service_pool:
+        .word   0x0000 ! 0xA176 alignment halfword
         .long   0xefffff0f ! 0xA178 SR mask ANDed by service_main and enter_ram
         .long   0x0000ff80 ! 0xA17C stored at GBR+146
         .long   0x8c000800 ! 0xA180 kept in r12 and called
@@ -35,5 +28,4 @@ ram_call_3:
         .long   0xa05f6910 ! 0xA1C4 written by enter_ram and quiet_interrupts
         .long   0x8c000768 ! 0xA1C8 enter_ram jumps here
         .long   0x8c000c86 ! 0xA1CC stored at GBR+136 by set_hook
-.La1d0:
-        .long   0x8c0010f0 ! 0xA1D0 ram_call_3 jumps here
+        .long   0x8c0010f0 ! 0xA1D0 ram_call_2 and ram_call_3 jump here

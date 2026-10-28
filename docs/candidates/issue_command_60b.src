@@ -1,0 +1,156 @@
+          .EXPORT     _lo
+          .EXPORT     _hi
+          .EXPORT     _issue_command
+          .SECTION    P,CODE,ALIGN=4
+_issue_command:                  ; function: issue_command
+                                 ; frame size=8
+          MOV.L       R14,@-R15
+          TST         R4,R4
+          STS.L       PR,@-R15
+          BF/S        L273
+          MOV         #1,R14
+          MOV         #0,R7
+          MOV.W       L296,R3    ; H'00F0
+          STC         GBR,R5
+          MOV         R7,R6
+          ADD         R3,R5
+          MOV.L       @(_hi-(STARTOF $G0)+108,GBR),R0
+          MOV.L       L296+4,R2  ; H'8C0010F0
+          JSR         @R2
+          MOV         R0,R4
+          MOV         R0,R4
+          TST         R4,R4
+          BT/S        L275
+          MOV.L       R0,@(_lo-(STARTOF $G0)+64,GBR)
+          BRA         L275
+          MOV         #0,R14
+L296:                             
+          .DATA.W     H'00F0
+          .DATA.W     H'0000
+          .DATA.L     H'8C0010F0
+L273:                             
+          MOV         #1,R7
+          MOV         #0,R6
+          STC         GBR,R5
+          ADD         #48,R5
+          MOV.L       @(_lo-(STARTOF $G0)+64,GBR),R0
+          MOV.L       L297,R3    ; H'8C0010F0
+          JSR         @R3
+          MOV         R0,R4
+          MOV         R0,R4
+          CMP/EQ      #2,R0
+          BT/S        L295
+          MOV.L       R0,@(_hi-(STARTOF $G0)+104,GBR)
+          MOV         R4,R0
+          CMP/EQ      #-1,R0
+          BF          L278
+          MOV         #0,R0
+          MOV.W       R0,@(_lo-(STARTOF $G0)+68,GBR)
+          MOV.L       @(_lo-(STARTOF $G0)+48,GBR),R0
+          CMP/EQ      #0,R0
+          BT          L266
+          CMP/EQ      #1,R0
+          BT          L267
+          CMP/EQ      #2,R0
+          BT          L268
+          CMP/EQ      #5,R0
+          BT          L269
+          CMP/EQ      #6,R0
+          BT          L270
+          CMP/EQ      #11,R0
+          BT          L271
+          CMP/EQ      #16,R0
+          BT          L272
+          BRA         L277
+          NOP
+L266:                            ; case label 
+L267:                            ; case label 
+L268:                            ; case label 
+L269:                            ; case label 
+L270:                            ; case label 
+L271:                            ; case label 
+L272:                            ; case label 
+          MOV         #0,R0
+          BRA         L277
+          MOV.W       R0,@(_lo-(STARTOF $G0)+70,GBR)
+L278:                             
+          TST         R4,R4
+          BF          L281
+L295:                             
+          BRA         L277
+          MOV         #0,R14
+L281:                             
+          MOV         R4,R0
+          CMP/EQ      #1,R0
+          BT          L284
+          MOV         R4,R0
+          CMP/EQ      #3,R0
+          BF          L277
+L284:                             
+          MOV         #-1,R14
+L277:                             
+          MOV         R14,R0
+          CMP/EQ      #-1,R0
+          BT          L275
+          MOV         #4,R7
+          MOV.L       L297,R3    ; H'8C0010F0
+          MOV         #0,R6
+          MOV         R6,R5
+          STC         GBR,R4
+          JSR         @R3
+          ADD         #72,R4
+          MOV         R0,R4
+          TST         R4,R4
+          BF          L275
+          BSR         __$reject_code
+          NOP
+          CMP/EQ      #-1,R0
+          BF          L275
+          MOV         #0,R0
+          MOV.W       R0,@(_lo-(STARTOF $G0)+68,GBR)
+          MOV.W       R0,@(_lo-(STARTOF $G0)+70,GBR)
+L275:                             
+          MOV         R14,R0
+          CMP/EQ      #1,R0
+          BT          L289
+          MOV         R14,R0
+          CMP/EQ      #-1,R0
+          BF          L288
+L289:                             
+          MOV.W       @(_lo-(STARTOF $G0)+68,GBR),R0
+          EXTU.W      R0,R0
+          TST         R0,R0
+          BT          L290
+          MOV.W       @(_lo-(STARTOF $G0)+68,GBR),R0
+          MOV.L       L297+4,R2  ; H'0000FFFF
+          ADD         R2,R0
+          MOV.W       R0,@(_lo-(STARTOF $G0)+68,GBR)
+          BRA         L288
+          MOV         #-1,R14
+L290:                             
+          MOV.W       @(_lo-(STARTOF $G0)+70,GBR),R0
+          EXTU.W      R0,R0
+          TST         R0,R0
+          BT          L288
+          MOV.W       @(_lo-(STARTOF $G0)+70,GBR),R0
+          MOV.L       L297+4,R3  ; H'0000FFFF
+          ADD         R3,R0
+          BSR         __$prime_count68
+          MOV.W       R0,@(_lo-(STARTOF $G0)+70,GBR)
+          MOV         #-2,R14
+L288:                             
+          LDS.L       @R15+,PR
+          MOV         R14,R0
+          RTS
+          MOV.L       @R15+,R14
+L297:                             
+          .DATA.L     H'8C0010F0
+          .DATA.L     H'0000FFFF
+          .SECTION    $G0,DATA,ALIGN=4
+_lo:                             ; static: lo
+          .DATAB.L    32,0
+          .SECTION    $G1,DATA,ALIGN=4
+_hi:                             ; static: hi
+          .DATAB.L    110,0
+          .SECTION    B,DATA,ALIGN=4
+          .END

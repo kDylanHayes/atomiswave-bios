@@ -2,7 +2,7 @@
   "image": "bios0",
   "sha1": "b4c1a26bc8906d5275eb28c701dff2b9365bcdfa",
   "compiler": "Hitachi SHC 5.1 Release 04 -cpu=sh3 -endian=little -optimize=1",
-  "c_match_functions": 6,
+  "c_match_functions": 13,
   "notes": [
     "sts.l pr,@-r15 (0x4F22) at 0x09e70, 0x09fd2, 0x0a11a, 0x0a1dc, 0x0a206, 0x0a354, 0x0a370, 0x0a3a4",
     "mov.l r14,@-r15 (0x2FE6) at 0x09e68, 0x09fbc, 0x0a1f4, 0x0a3a0",
@@ -12,7 +12,7 @@
     "0x9CDC is a bsr target (0x0a012, 0x0a1e0, 0x0a322, 0x0a35a, 0x0a388) and a zero hole, so it is data, not a function",
     "last recovered code byte is 0x0a49c; nothing past 0xA6A0 was recovered as code",
     "bytes that are not listed were not linear-swept; font, tables, and padding stay data",
-    "Hitachi SHC 5.1 Release 04 is pinned: -cpu=sh3 -endian=little -optimize=1. C matches in this build: reject_code (28 bytes at 0x9e34), ram_window_ready (24 bytes at 0x9e50), set_hook (6 bytes at 0xa158), phase_until_clear (26 bytes at 0xa1da), retry_issue (28 bytes at 0xa354), run_transfer (48 bytes at 0xa370); see docs/compiler.md"
+    "Hitachi SHC 5.1 Release 04 is pinned: -cpu=sh3 -endian=little -optimize=1. C matches in this build: reject_code (28 bytes at 0x9e34), ram_window_ready (24 bytes at 0x9e50), step_phase (340 bytes at 0x9e68), enter_ram (46 bytes at 0xa116), quiet_interrupts (20 bytes at 0xa144), set_hook (6 bytes at 0xa158), ram_call_2 (12 bytes at 0xa15e), ram_call_3 (12 bytes at 0xa16a), prime_count68 (6 bytes at 0xa1d4), phase_until_clear (26 bytes at 0xa1da), retry_issue (28 bytes at 0xa354), run_transfer (48 bytes at 0xa370), issue_command (252 bytes at 0xa3a0); see docs/compiler.md"
   ],
   "functions": [
     {
@@ -174,7 +174,8 @@
       "insns": 153,
       "kind": "compiled",
       "category": "services",
-      "source": "asm/services/step_phase.s",
+      "matched_c": true,
+      "object": "build/services/step_phase.o",
       "size": 340
     },
     {
@@ -194,7 +195,8 @@
       "insns": 23,
       "kind": "compiled",
       "category": "services",
-      "source": "asm/services/enter_ram.s",
+      "matched_c": true,
+      "object": "build/services/enter_ram.o",
       "size": 46
     },
     {
@@ -204,7 +206,8 @@
       "insns": 10,
       "kind": "compiled",
       "category": "services",
-      "source": "asm/services/quiet_interrupts.s",
+      "matched_c": true,
+      "object": "build/services/quiet_interrupts.o",
       "size": 20
     },
     {
@@ -225,18 +228,20 @@
       "insns": 6,
       "kind": "compiled",
       "category": "services",
-      "source": "asm/services/ram_call_2.s",
+      "matched_c": true,
+      "object": "build/services/ram_call_2.o",
       "size": 12
     },
     {
       "entry": 41322,
-      "end": 41428,
+      "end": 41334,
       "name": "ram_call_3",
       "insns": 6,
       "kind": "compiled",
       "category": "services",
-      "source": "asm/services/ram_call_3.s",
-      "size": 106
+      "matched_c": true,
+      "object": "build/services/ram_call_3.o",
+      "size": 12
     },
     {
       "entry": 41428,
@@ -245,7 +250,8 @@
       "insns": 3,
       "kind": "compiled",
       "category": "services",
-      "source": "asm/services/prime_count68.s",
+      "matched_c": true,
+      "object": "build/services/prime_count68.o",
       "size": 6
     },
     {
@@ -298,7 +304,8 @@
       "insns": 118,
       "kind": "compiled",
       "category": "services",
-      "source": "asm/services/issue_command.s",
+      "matched_c": true,
+      "object": "build/services/issue_command.o",
       "size": 252
     }
   ],
@@ -318,6 +325,14 @@
       "kind": "data",
       "note": "bsr target in erased flash (0xFF)",
       "source": "asm/data/hole_09d52.s"
+    },
+    {
+      "entry": 41334,
+      "end": 41428,
+      "name": "service_pool",
+      "kind": "data",
+      "note": "shared literal pool. alignment halfword at 0xA176, constants through 0xA1D0",
+      "source": "asm/data/service_pool.s"
     },
     {
       "entry": 106496,

@@ -65,6 +65,13 @@ MATCHED_C = {
     "phase_until_clear": "build/services/phase_until_clear.o",
     "set_hook": "build/services/set_hook.o",
     "ram_window_ready": "build/services/ram_window_ready.o",
+    "ram_call_2": "build/services/ram_call_2.o",
+    "ram_call_3": "build/services/ram_call_3.o",
+    "prime_count68": "build/services/prime_count68.o",
+    "quiet_interrupts": "build/services/quiet_interrupts.o",
+    "enter_ram": "build/services/enter_ram.o",
+    "step_phase": "build/services/step_phase.o",
+    "issue_command": "build/services/issue_command.o",
 }
 TOP = object()
 CONTROL = {
@@ -510,9 +517,13 @@ def build(rom):
         if not insns:
             continue
         end = max(pc + 2 for pc in insns)
-        for ea, size in pools_of.get(entry, ()):
-            if entry <= ea < following[entry]:
-                end = max(end, ea + size)
+        # ram_call_3's mov.l reaches 0xA1D0. That constant is the last word
+        # of the pool shared with service_main and the other callers.
+        # Extending this function there would count those 94 bytes as code.
+        if entry != 0xA16A:
+            for ea, size in pools_of.get(entry, ()):
+                if entry <= ea < following[entry]:
+                    end = max(end, ea + size)
         end = min(end, following[entry])
         functions.append({
             "entry": entry,
@@ -570,6 +581,13 @@ def build(rom):
             "note": "bsr target in erased flash (" + ("0x00" if rom[hole] == 0 else "0xFF") + ")",
         })
     data.append({
+        "entry": 0xA176,
+        "end": 0xA1D4,
+        "name": "service_pool",
+        "kind": "data",
+        "note": "shared literal pool. alignment halfword at 0xA176, constants through 0xA1D0",
+    })
+    data.append({
         "entry": 0x1A000,
         "end": 0x1A00C,
         "name": "footer",
@@ -626,7 +644,8 @@ def write_text(path, functions, data, notes, digest):
         "# kind is asm, compiled, or data. compiled means an ABI prologue or a real bsr,",
         "# or a routine past 0x9E00 that is only reached from one of those.",
         "# Matched C is reject_code, ram_window_ready, phase_until_clear,",
-        "# set_hook, retry_issue, and run_transfer.",
+        "# set_hook, retry_issue, run_transfer, ram_call_2, ram_call_3,",
+        "# prime_count68, quiet_interrupts, enter_ram, and step_phase.",
         "# Every other compiled range is checked assembly.",
         "# mix_shifts, copy_words, and poll_bit are handwritten. The other .s files are lifted from flash.",
     ]
@@ -667,6 +686,12 @@ def check(functions, notes):
             problems.append(f"{fn['name']} has no assembly source")
     if not any("0x9CDC is a bsr target" in note for note in notes):
         problems.append("0x9CDC hole was not recorded")
+    call2 = by_entry.get(0xA15E)
+    call3 = by_entry.get(0xA16A)
+    if call2 is None or call2["end"] != 0xA16A:
+        problems.append("ram_call_2 must stay 12 bytes")
+    if call3 is None or call3["end"] != 0xA176:
+        problems.append("ram_call_3 must end at 0xA176; the pool is service_pool")
     if any("WARNING" in note for note in notes):
         problems.extend(note for note in notes if "WARNING" in note)
     return problems

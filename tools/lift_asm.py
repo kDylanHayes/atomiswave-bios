@@ -8,9 +8,9 @@ indexed mov.b/mov.w, and the GBR bit ops are corrected here. decode() itself
 stays as it was so the split does not move.
 
 The three handwritten boot files are left alone. reject_code,
-ram_window_ready, set_hook, phase_until_clear, retry_issue, and
-run_transfer are matched C and are not emitted. A stale .s file for one
-of those names is removed so the assembly wildcard does not rebuild it.
+ram_window_ready, set_hook, phase_until_clear, retry_issue,
+run_transfer, ram_call_2, ram_call_3, prime_count68,
+quiet_interrupts, enter_ram, and step_phase are matched C and are not emitted. A stale .s file for one of those names is removed so the assembly wildcard does not rebuild it.
 Output is byte-checked against the ROM before it is written.
 This is assembly. It is not matched C.
 """
@@ -35,11 +35,45 @@ MATCHED_C = {
     "phase_until_clear",
     "retry_issue",
     "run_transfer",
+    "ram_call_2",
+    "ram_call_3",
+    "prime_count68",
+    "quiet_interrupts",
+    "enter_ram",
+    "step_phase",
 }
 # bsr lands inside the erased holes, not only at their starts.
 HOLE_LABELS = {
     "hole_09cdc": (0x9CE2,),
     "hole_09d52": (0x9DB8,),
+}
+# Comments for the shared pool. lift keeps them so a later regen does not
+# drop the only place these constants are named.
+SERVICE_POOL_NOTES = {
+    0xA176: "alignment halfword",
+    0xA178: "SR mask ANDed by service_main and enter_ram",
+    0xA17C: "stored at GBR+146",
+    0xA180: "kept in r12 and called",
+    0xA184: "kept in r14 and called",
+    0xA188: "stored at GBR+100",
+    0xA18C: "called with r4 = 1",
+    0xA190: "called with GBR+100",
+    0xA194: "stored at GBR+144",
+    0xA198: "called with no argument",
+    0xA19C: "called with no argument",
+    0xA1A0: "passed as r4",
+    0xA1A4: "the call that takes that r4",
+    0xA1A8: "r5 to scan_list",
+    0xA1AC: "r4 to scan_list",
+    0xA1B0: "stored at GBR+100 before the return",
+    0xA1B4: "ORed into SR by enter_ram and quiet_interrupts",
+    0xA1B8: "VBR set by enter_ram",
+    0xA1BC: "called by enter_ram",
+    0xA1C0: "stored at GBR+564",
+    0xA1C4: "written by enter_ram and quiet_interrupts",
+    0xA1C8: "enter_ram jumps here",
+    0xA1CC: "stored at GBR+136 by set_hook",
+    0xA1D0: "ram_call_2 and ram_call_3 jump here",
 }
 TERMINAL = {"bra", "jmp", "rts", "rte", "braf"}
 DELAYED = {"bra", "bsr", "bt/s", "bf/s", "jmp", "jsr", "rts", "rte", "braf", "bsrf"}
@@ -240,25 +274,37 @@ def emit_function(rom, fn, blocked):
 def emit_data(rom, item):
     entry, end, name = item["entry"], item["end"], item["name"]
     extra = set(HOLE_LABELS.get(name, ()))
-    lines = [
-        f"! {name}",
-        "! Original flash bytes. Not a recoverable function.",
-        "",
+    if name == "service_pool":
+        lines = [
+            "! service_pool",
+            "! File 0xA176 through 0xA1D4. Shared literals for the service cluster.",
+            "! ram_call_2 and ram_call_3 jump through 0xA1D0. Not a function.",
+            "",
+        ]
+    else:
+        lines = [
+            f"! {name}",
+            "! Original flash bytes. Not a recoverable function.",
+            "",
+        ]
+    lines.extend([
         f"        .org    0x{entry:x}",
         f"        .global {name}",
         f"{name}:",
-    ]
+    ])
     pc = entry
     while pc < end:
         if pc in extra:
             lines.append(f"hole_{pc:05x}:")
+        note = SERVICE_POOL_NOTES.get(pc, "") if name == "service_pool" else ""
+        comment = f" ! 0x{pc:X} {note}" if note else ""
         if pc % 4 == 0 and pc + 4 <= end and not any(addr in extra for addr in range(pc + 1, pc + 4)):
             value = int.from_bytes(rom[pc:pc + 4], "little")
-            lines.append(f"        .long   0x{value:08x}")
+            lines.append(f"        .long   0x{value:08x}{comment}")
             pc += 4
         else:
             value = int.from_bytes(rom[pc:pc + 2], "little")
-            lines.append(f"        .word   0x{value:04x}")
+            lines.append(f"        .word   0x{value:04x}{comment}")
             pc += 2
     text = "\n".join(lines) + "\n"
     origin, data, symbol = sh4.assemble(text)

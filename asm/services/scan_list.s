@@ -152,7 +152,7 @@ scan_list:
         bt .La304
         bra .La306
         mov r13, r0
-        .word   0x0258
+        .word   0x0258 ! 0xA2E6. prime_count68 loads 600 from here
 .La2e8:
         .word   0x00a2 ! added to the list before hole 0x9CE2
 .La2ea:

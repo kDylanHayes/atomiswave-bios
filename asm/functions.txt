@@ -3,7 +3,8 @@
 # kind is asm, compiled, or data. compiled means an ABI prologue or a real bsr,
 # or a routine past 0x9E00 that is only reached from one of those.
 # Matched C is reject_code, ram_window_ready, phase_until_clear,
-# set_hook, retry_issue, and run_transfer.
+# set_hook, retry_issue, run_transfer, ram_call_2, ram_call_3,
+# prime_count68, quiet_interrupts, enter_ram, and step_phase.
 # Every other compiled range is checked assembly.
 # mix_shifts, copy_words, and poll_bit are handwritten. The other .s files are lifted from flash.
 # sts.l pr,@-r15 (0x4F22) at 0x09e70, 0x09fd2, 0x0a11a, 0x0a1dc, 0x0a206, 0x0a354, 0x0a370, 0x0a3a4
@@ -14,7 +15,7 @@
 # 0x9CDC is a bsr target (0x0a012, 0x0a1e0, 0x0a322, 0x0a35a, 0x0a388) and a zero hole, so it is data, not a function
 # last recovered code byte is 0x0a49c; nothing past 0xA6A0 was recovered as code
 # bytes that are not listed were not linear-swept; font, tables, and padding stay data
-# Hitachi SHC 5.1 Release 04 is pinned: -cpu=sh3 -endian=little -optimize=1. C matches in this build: reject_code (28 bytes at 0x9e34), ram_window_ready (24 bytes at 0x9e50), set_hook (6 bytes at 0xa158), phase_until_clear (26 bytes at 0xa1da), retry_issue (28 bytes at 0xa354), run_transfer (48 bytes at 0xa370); see docs/compiler.md
+# Hitachi SHC 5.1 Release 04 is pinned: -cpu=sh3 -endian=little -optimize=1. C matches in this build: reject_code (28 bytes at 0x9e34), ram_window_ready (24 bytes at 0x9e50), step_phase (340 bytes at 0x9e68), enter_ram (46 bytes at 0xa116), quiet_interrupts (20 bytes at 0xa144), set_hook (6 bytes at 0xa158), ram_call_2 (12 bytes at 0xa15e), ram_call_3 (12 bytes at 0xa16a), prime_count68 (6 bytes at 0xa1d4), phase_until_clear (26 bytes at 0xa1da), retry_issue (28 bytes at 0xa354), run_transfer (48 bytes at 0xa370), issue_command (252 bytes at 0xa3a0); see docs/compiler.md
 # entry end size kind category name
 000000 00005c     92 asm      boot     reset
 00005c 000100    164 asm      boot     boot
@@ -37,7 +38,7 @@
 00a144 00a158     20 compiled services quiet_interrupts
 00a158 00a15e      6 compiled services set_hook
 00a15e 00a16a     12 compiled services ram_call_2
-00a16a 00a1d4    106 compiled services ram_call_3
+00a16a 00a176     12 compiled services ram_call_3
 00a1d4 00a1da      6 compiled services prime_count68
 00a1da 00a1f4     26 compiled services phase_until_clear
 00a1f4 00a354    352 compiled services scan_list
@@ -47,4 +48,5 @@
 # data
 009cdc 009cf2     22 data     data     hole_09cdc  bsr target in erased flash (0x00)
 009d52 009e18    198 data     data     hole_09d52  bsr target in erased flash (0xFF)
+00a176 00a1d4     94 data     data     service_pool  shared literal pool. alignment halfword at 0xA176, constants through 0xA1D0
 01a000 01a00c     12 data     data     footer  12-byte footer. bios1 differs at 0x1a003, 0x1a004, 0x1a006, 0x1a007, 0x1a008, 0x1a009

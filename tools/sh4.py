@@ -295,7 +295,8 @@ def decode(hw):
     if op == 0x8 and (hw >> 8) == 0x8F:
         return ("bf/s", sx(imm8, 8))
     if op == 0x9:
-        return ("mov.w", ("pc", sx(imm8, 8)), rn)
+        # The 8-bit displacement is zero-extended, same as mov.l.
+        return ("mov.w", ("pc", imm8), rn)
     if op == 0xA:
         return ("bra", sx(hw & 0xFFF, 12))
     if op == 0xB:
@@ -540,9 +541,9 @@ def _encode(op, args, pc, labels):
         if disp_bytes % 2:
             raise ValueError(f"mov.w pool at {target:#x} is not aligned from {pc:#x}")
         disp = disp_bytes // 2
-        if not -128 <= disp <= 127:
+        if not 0 <= disp <= 255:
             raise ValueError(f"mov.w displacement {disp} does not fit")
-        return 0x9000 | (reg(args[1]) << 8) | (disp & 0xFF)
+        return 0x9000 | (reg(args[1]) << 8) | disp
     encoded = _encode_rest(op, args)
     if encoded is not None:
         return encoded
