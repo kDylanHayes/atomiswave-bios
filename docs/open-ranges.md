@@ -606,6 +606,23 @@ On acquisition, check in this order:
    `R8=2`, `R9=saved`, `R10=0x6DDD0`, `R11=0x96`, and returns a
    36-byte frame with `list` in `R12`.
 
+Library-version sweep (2026-10-30). Running NAOMI GD titles under MAME
+and dumping SH-4 RAM after boot exposes the Kunoichi banner even though
+the on-disc payload is packed:
+
+| Game | Banner |
+| --- | --- |
+| Moeru Casinyo (2003) | `Kunoichi2 Library 2.04`, Build Nov 17 2000 |
+| Psyvariar 2 (2004) | `Kunoichi2 Library 2.07`, Build Mar 21 2001 |
+| Melty Blood Act Cadenza (2005) | `Kunoichi Library 0.99`, Build Mar 19 2001 |
+| Quiz Keitai Q mode (2002) | no banner after 60 s |
+
+The 2.04 banner is byte-identical to the `kunoi2.lib` in SDK 2.02
+(`kn2ver.txt`: Ver 2.04, Build Nov 17 2000 19:33:52), five days before
+that disc (Nov 22 2000). SDK 2.04 is dated Mar 23 2001; library 2.07
+was built Mar 21 2001, two days earlier. The same offset implies SDK
+2.04 ships library 2.07. No compiler banner survives in RAM.
+
 No other 2001+ NAOMI/System SP SDK disc is public or listed: searches
 for `Kunoichi 2.05/2.06`, `NAOMI SDK` updates after 001002, and
 System SP SDK material return nothing. The Atomiswave SystemX SDK and
