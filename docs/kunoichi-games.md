@@ -87,3 +87,27 @@ Sixteen titles load **2.07 built 2001-03-21**. That is the dominant
 
 No compiler banner survives in RAM; the compiler itself still has to
 come from the disc.
+
+## Compiler fingerprint attempts (negative)
+
+The RAM dumps date the *library*, not the compiler. Three attempts:
+
+1. **4 KB block matching** across dumps: Psyvariar 2 (2.07) vs Super
+   Shanghai (2.07) shares 9 blocks; Moeru (2.04) vs Psyvariar shares 9.
+   Only BIOS/data blocks match; library code is relocated and cannot be
+   aligned this way.
+2. **Whole-window matching** blew memory at 8 MB per dump; restricting
+   to the banner region still finds nothing stable.
+3. **Library symbols**: the Hitachi librarian (`LBR.EXE` 2.0A, 5.1
+   tools) lists `kunoi2.lib` as 108 modules / 1197 symbols, and
+   `EXTRACT` + `OUTPUT` produces a one-module library. The embedded ROF
+   object starts at offset 768 (`80 21 00 80 ...`); slicing it and
+   running `elfcnv.exe` (5.1 R11) converts it to ELF with SYSROF
+   sections (`PSG` code, `CSG` constants, `BSG` bss). But linking into
+   the game relocates the code, so raw matching of a module's `PSG`
+   bytes against RAM is unreliable (pdtmr_: 9/310 windows in Moeru).
+
+Even with perfect symbol recovery, the library is compiled code without
+source; identifying *which* compiler produced it still requires the
+compiler binaries or a build manifest. Those are only on the SDK disc.
+
