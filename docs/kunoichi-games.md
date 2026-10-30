@@ -66,8 +66,8 @@ banner.
 | `vtennis2` | Virtua Tennis 2 | none |
 | `quizqgd` | Quiz Keitai Q mode | none at 60 s |
 | `takoron` | Noukone Puzzle Takoron | none at 15 s |
-| `lupinsho` | Lupin The Third - The Shooting | untested (CHD fetch 500) |
-| `puyofev` | Puyo Pop Fever | untested (CHD name mismatch) |
+| `lupinshoo` | Lupin The Third - The Shooting | 0.99, Mar 19 2001 |
+| `puyofevj` | Puyo Pop Fever (Japan) | 2.07, Mar 21 2001 |
 
 Sixteen titles load **2.07 built 2001-03-21**. That is the dominant
 2001-2008 library.
@@ -120,15 +120,13 @@ RAM-dump method. Eighteen load a Kunoichi banner:
 |---|---|---|
 | 0.06zrTEST2 | Sep 30 1999 | Toukon Retsuden 4 |
 | 0.62TEST4 | Sep 29 1999 | Puyo Puyo Da!, Samba de Amigo |
-| 0.71 | Dec 08 1999 | Tokyo Bus, Virtual On Oratorio Tangram, WWF Royal Rumble |
+| 0.71 | Dec 08 1999 | Tokyo Bus, Virtual On Oratorio Tangram, WWF Royal Rumble, Death Crimson OX |
 | 0.96 | Oct 23 2000 | Gun Survivor 2, Samba de Amigo ver. 2000, Wave Runner GP |
 | 0.99 | Mar 19 2001 | Shootout Pool |
 | 2.07 | Mar 21 2001 | Asian Dynamite, Akatsuki Blitzkampf Ausf. Achse, Melty Blood Actress Again, Radirgy Noa, Mushiking 2004/2005/2006 First/2006 Second |
 
-The other 76 carts show no Kunoichi banner. A few could not be run at
-all because the available ROM zips are incomplete: `18wheelr`,
-`alpilot`, `deathcox`, `hotd2`, `ninjaslt`, `pjustic`, `sgdrvsim`,
-`shootplm`, `shors2k2m`, `shors2k2s`.
+The other 75 carts show no Kunoichi banner. Missing parent/BIOS sets
+were supplied from the MAME 0.289 merged set, so all 94 carts ran.
 
 The 0.06zrTEST2 hit pushes the line back to **September 1999**; the
 2008-2009 carts (`mbaa`, `radirgyn`) still use 2.07.
@@ -137,4 +135,6 @@ The 0.06zrTEST2 hit pushes the line back to **September 1999**; the
 
 - NAOMI 2 titles (different platform; MAME has some).
 - System SP titles if MAME drivers exist.
-- The ten carts above whose ROM zips are incomplete.
+- The Rev A and World CHDs missing from the pack (`lupinsho`
+  `gds-0018a`, `puyofev` `gds-0034`); their base/Japan releases are
+  covered.
