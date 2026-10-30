@@ -48,9 +48,10 @@ any public SDK:
   fails `issue_command` structurally (`pr` before `tst`, `BT` instead of
   `BF/S`, different pool) and spills the whole `scan_list` frame.
 - 5.0, 5.1, 6.0A and 6.0C fail in the same way as 6.0B.
-- `service_main` additionally rewrites `SR`, which the pinned SHC
-  headers cannot express from C (no `get_sr`/`set_sr`; `SH4_gnu.h`
-  relies on GCC inline asm).
+- `service_main` rewrites `SR`, but that part is expressible:
+  `set_cr((get_cr() & 0xEFFFFF0F) | 0xF0)` compiles to the flash's
+  `STC SR,R0` / `AND` / `OR #240` / `LDC R0,SR`. It stays assembly for
+  its state machine and the inline branch at `0xA0E6`.
 
 The missing artefact is an **official Adria 6.0AD build after R04**
 (R05 was planned for October 2000) or the exact 2001 build used for the

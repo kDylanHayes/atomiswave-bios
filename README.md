@@ -98,9 +98,11 @@ canonicalised before assembly; their C sources are in
 | `0x99C` | 100 | `blit_glyphs` |
 | `0x9FBC` | 346 | `service_main` |
 
-`service_main` stays assembly: it rewrites `SR` (`stc sr` / `and` /
-`or #240` / `ldc sr`), and the pinned SHC headers expose no `get_sr` /
-`set_sr` intrinsic. See `docs/open-ranges.md`.
+`service_main` stays assembly for its state machine and the inline
+branch at `0xA0E6`. Its `SR` prologue **is** C-expressible:
+`set_cr((get_cr() & 0xEFFFFF0F) | 0xF0)` compiles to the flash's
+`STC SR,R0` / `AND` / `OR #240` / `LDC R0,SR`. See
+`docs/open-ranges.md`.
 
 ## Documentation
 

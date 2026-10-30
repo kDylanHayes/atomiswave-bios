@@ -65,8 +65,9 @@ pool after a conditional branch.
 `docs/candidates/scan_list_60b_extern.c`; the allocator limit is in
 [`open-ranges.md`](open-ranges.md).
 
-`service_main` remains checked assembly; its `SR` prologue is not
-C-expressible with the pinned headers.
+`service_main` remains checked assembly for its state machine and the
+inline branch at `0xA0E6`. Its `SR` prologue is C-expressible with
+`get_cr()`/`set_cr()`; see [`open-ranges.md`](open-ranges.md).
 
 ## What matched
 

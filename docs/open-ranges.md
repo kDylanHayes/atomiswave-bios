@@ -673,10 +673,17 @@ the flash's `R12`/`R13` assignment. The `.src` should be read as
 "verified bytes in SHC syntax", the same status as the patched
 `issue_command_60b.src`, only with a larger patch.
 
-`service_main` is the last unit and stays assembly. Besides the
-hand-scheduled state machine, it reads and rewrites `SR`
-(`stc sr,r0` / `and` / `or #240` / `ldc r0,sr`). The pinned SHC headers
-expose no `get_sr`/`set_sr` intrinsic (`machine.h` has none; `SH4_gnu.h`
-uses GCC inline asm, which SHC does not accept), so that prologue
-cannot be emitted from C with 6.0B at all. Its bytes are already
-covered by the checked `asm/services/service_main.s`.
+`service_main` is the last unit and stays assembly for its
+hand-scheduled state machine and the inline branch at `0xA0E6`. Its
+`SR` prologue is **not** a blocker: `smachine.h` declares
+`get_cr()` / `set_cr()`, and
+
+```c
+set_cr((get_cr() & 0xEFFFFF0F) | 0xF0);
+```
+
+compiles with 6.0A and 6.0B to `MOV.L mask,R3 ; STC SR,R0 ; AND R3,R0 ;
+OR #240,R0 ; LDC R0,SR` - the flash sequence, with the register saves
+scheduled between those instructions. Storing `get_cr()` in a local
+first instead returns through `R4` and does not match. Its bytes remain
+covered by `asm/services/service_main.s`.
