@@ -111,3 +111,30 @@ Even with perfect symbol recovery, the library is compiled code without
 source; identifying *which* compiler produced it still requires the
 compiler binaries or a build manifest. Those are only on the SDK disc.
 
+## Cartridge titles
+
+The 0.239 NAOMI DAT lists **94 cart sets** (no CHD). A sample of 20
+third-party carts was run through the same RAM-dump method:
+
+| MAME set | Title | Banner |
+|---|---|---|
+| `gunsur2` | Gun Survivor 2 (Capcom/Namco, 2001) | Kunoichi 0.96, Oct 23 2000 |
+| `puyoda` | Puyo Puyo Da! (Compile, 1999) | Kunoichi 0.62TEST4, Sep 29 1999 |
+| `shootopl` | Shootout Pool (Sega, 2002) | Kunoichi 0.99, Mar 19 2001 |
+| `mbaa` | Melty Blood Actress Again (2008) | Kunoichi2 2.07, Mar 21 2001 |
+| `radirgyn` | Radirgy Noa (2009) | Kunoichi2 2.07, Mar 21 2001 |
+| `capsnk`, `cspike`, `ggx`, `gwing2`, `hmgeo`, `mazan`, `pstone2`, `mvsc2`, `doa2m`, `sgtetris`, `illvelo`, `mamonoro` | various 1999-2008 | none |
+
+`deathcox`, `pjustic` and `ninjaslt` could not be run: the available
+ROM zips are missing files.
+
+The 0.62TEST4 hit pushes the Kunoichi line back to September 1999; the
+2008-2009 cart hits show 2.07 still in use a decade later.
+
+## What is still uncovered
+
+- 74 of the 94 cart sets (the cart list is in the 0.239 DAT).
+- NAOMI 2 titles (different platform, MAME has some).
+- System SP titles (Mushiking etc.) if MAME drivers exist.
+- Atomiswave: all 13 sets in the MAME 0.226 collection are covered.
+
