@@ -115,6 +115,7 @@ branch at `0xA0E6`. Its `SR` prologue **is** C-expressible:
 | [`docs/boot.md`](docs/boot.md) | boot path, memory init, bootrom handoff |
 | [`docs/tooling.md`](docs/tooling.md) | Ghidra and REA versions, decompiler export |
 | [`docs/kunoichi-games.md`](docs/kunoichi-games.md) | trackable NAOMI GD titles and their Kunoichi library versions |
+| [`docs/atomiswave-games.md`](docs/atomiswave-games.md) | Atomiswave titles and their SystemX/Shinobi library generations |
 
 ## Notes
 
