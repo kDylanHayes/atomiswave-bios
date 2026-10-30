@@ -1,11 +1,13 @@
-# Kunoichi games
+# Kunoichi and platform libraries
 
-Trackable NAOMI GD-ROM titles and the Kunoichi library each one loads.
-The point is to date the SDK generations without decrypting the disc
-image: run the game under MAME, dump SH-4 RAM, and read the library
-banner.
+Trackable NAOMI, NAOMI 2 and System SP titles and the library generation
+each one loads. The point is to date the SDK generations without
+decrypting the disc image: run the game under MAME, dump SH-4 RAM, and
+read the library banner.
 
 ## Method
+
+The NAOMI GD sweep:
 
 1. MAME 0.289, ROM zip from the MAME merged set and the CHD from
    [Naomigdrompack](https://archive.org/details/Naomigdrompack).
@@ -14,6 +16,10 @@ banner.
 3. `dump.lua` waits 900 frames, dumps `0x0C000000`-`0x0C7FFFFF`
    (8 MB of SH-4 RAM), and exits.
 4. `strings -a -n 5 ram.bin | grep -i kunoichi`.
+
+Cartridge, System SP and NAOMI 2 sections use the same dump with a
+32 MB window (`0x0C000000`-`0x0DFFFFFF`), or read the banners directly
+from the ROM zip.
 
 ## Sources
 
@@ -179,7 +185,7 @@ recovered.
 
 ## Platform matrix
 
-| Platform | Library family | Earliest | Latest |
+| Platform | Library family | First build | Last build |
 |---|---|---|---|
 | NAOMI (cart/GD) | Kunoichi / Kunoichi2 | 0.06zrTEST2, Sep 1999 | 2.07, Mar 2001 |
 | Atomiswave | SystemX / Shinobi | SystemX 1.01, 2001 | Shinobi 2.01, 2003 |
