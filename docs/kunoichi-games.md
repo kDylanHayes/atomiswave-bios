@@ -66,8 +66,8 @@ banner.
 | `vtennis2` | Virtua Tennis 2 | none |
 | `quizqgd` | Quiz Keitai Q mode | none at 60 s |
 | `takoron` | Noukone Puzzle Takoron | none at 15 s |
-| `lupinshoo` | Lupin The Third - The Shooting | 0.99, Mar 19 2001 |
-| `puyofevj` | Puyo Pop Fever (Japan) | 2.07, Mar 21 2001 |
+| `lupinsho` / `lupinshoo` | Lupin The Third - The Shooting | 0.99, Mar 19 2001 |
+| `puyofev` / `puyofevj` | Puyo Pop Fever | 2.07, Mar 21 2001 |
 
 Sixteen titles load **2.07 built 2001-03-21**. That is the dominant
 2001-2008 library.
@@ -135,6 +135,4 @@ The 0.06zrTEST2 hit pushes the line back to **September 1999**; the
 
 - NAOMI 2 titles (different platform; MAME has some).
 - System SP titles if MAME drivers exist.
-- The Rev A and World CHDs missing from the pack (`lupinsho`
-  `gds-0018a`, `puyofev` `gds-0034`); their base/Japan releases are
-  covered.
+
