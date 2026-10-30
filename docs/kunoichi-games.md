@@ -136,3 +136,30 @@ The 0.06zrTEST2 hit pushes the line back to **September 1999**; the
 - NAOMI 2 titles (different platform; MAME has some).
 - System SP titles if MAME drivers exist.
 
+## System SP (SPIDER)
+
+MAME's `segasp` driver works with the BIOS built from the retrobios
+`segasp/` files. The same RAM dump applies; the library is a
+platform-specific `2.07sp` build.
+
+| MAME set | Title | Banner |
+|---|---|---|
+| `dinoking` | Dinosaur King (USA) | Kunoichi2 Library for SPIDER 2.07sp, Jun 21 2004 |
+| `lovebery` | Love and Berry 1st-2nd (Ver 2.000) | Kunoichi2 Library for SPIDER 2.07sp, Oct 08 2004 |
+| `dinoki25` / `dinokior` | Dinosaur King variants | untested (CHD `mda-c0047` / `mda-c0021` missing) |
+
+## NAOMI 2
+
+MAME supports the platform. `clubk2k3` (Club Kart 2003) has a complete
+ROM set and boots, but shows no banner in the first 8 MB of RAM;
+NAOMI 2 has a larger memory map and needs a wider dump. `initd`
+(Initial D) needs CHD `gds-0020b`, available in the
+[Naomi 2 redump CHD collection](https://archive.org/details/sega-naomi2-redump-collection).
+
+## Atomiswave prototypes
+
+- **Sushi Bar**: only a NAOMI conversion exists
+  ([`sushibar`](https://archive.org/details/sushibar)); no original
+  Atomiswave dump is public.
+- **Chicago 1929**: no public ROM dump.
+
