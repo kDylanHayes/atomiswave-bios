@@ -28,30 +28,62 @@ banner.
 
 | MAME set | Title | Banner |
 |---|---|---|
-| `chocomk` | Musapey's Choco Marker (GDL-0014A) | Kunoichi 0.91, Apr 06 2000 |
-| `moeru` | Moeru Casinyo (GDL-0013) | Kunoichi2 2.04, Nov 17 2000 |
-| `vathlete` | Virtua Athletics (GDS-0019) | Kunoichi 0.96, Oct 23 2000 |
-| `meltybld` | Melty Blood Act Cadenza Ver. A (GDL-0028C) | Kunoichi 0.99, Mar 19 2001 |
-| `psyvar2` | Psyvariar 2 (GDL-0024) | Kunoichi2 2.07, Mar 21 2001 |
-| `ss2005` | Super Shanghai 2005 Rev A (GDL-0031A) | Kunoichi2 2.07, Mar 21 2001 |
-| `tetkiwam` | Tetris Kiwamemichi (GDL-0020) | Kunoichi2 2.07, Mar 21 2001 |
-| `quizqgd` | Quiz Keitai Q mode (GDL-0017) | none at 60 s |
-| `takoron` | Noukone Puzzle Takoron (GDL-0042) | none at 15 s |
+| `chocomk` | Musapey's Choco Marker | 0.91, Apr 06 2000 |
+| `cleoftp` | Cleopatra Fortune Plus | 2.04, Nov 17 2000 |
+| `moeru` | Moeru Casinyo | 2.04, Nov 17 2000 |
+| `vathlete` | Virtua Athletics | 0.96, Oct 23 2000 |
+| `sfz3ugd` | Street Fighter Zero 3 Upper | 0.96, Oct 23 2000 |
+| `ikaruga` | Ikaruga | 2.06, Feb 20 2001 |
+| `keyboard` | La Keyboard | 2.06, Feb 20 2001 |
+| `jingystm` | Jingi Storm | 0.99, Mar 19 2001 |
+| `meltybld` | Melty Blood Act Cadenza Ver. A | 0.99, Mar 19 2001 |
+| `bdrdown` | Border Down | 2.07, Mar 21 2001 |
+| `cfield` | Chaos Field | 2.07, Mar 21 2001 |
+| `karous` | Karous | 2.07, Mar 21 2001 |
+| `kurucham` | Kurukuru Chameleon | 2.07, Mar 21 2001 |
+| `meltyb` | Melty Blood Act Cadenza Version B2 | 2.07, Mar 21 2001 |
+| `psyvar2` | Psyvariar 2 | 2.07, Mar 21 2001 |
+| `radirgy` | Radirgy | 2.07, Mar 21 2001 |
+| `senko` | Senko no Ronde | 2.07, Mar 21 2001 |
+| `senkosp` | Senko no Ronde Special | 2.07, Mar 21 2001 |
+| `shikgam2` | Shikigami no Shiro II | 2.07, Mar 21 2001 |
+| `ss2005` | Super Shanghai 2005 | 2.07, Mar 21 2001 |
+| `tetkiwam` | Tetris Kiwamemichi | 2.07, Mar 21 2001 |
+| `trgheart` | Trigger Heart Exelica | 2.07, Mar 21 2001 |
+| `trizeal` | Trizeal | 2.07, Mar 21 2001 |
+| `undefeat` | Under Defeat | 2.07, Mar 21 2001 |
+| `usagiym` | Usagi - Yamashiro Mahjong Hen | 2.07, Mar 21 2001 |
+| `confmiss` | Confidential Mission | none |
+| `cvsgd` | Capcom Vs. SNK Pro | none |
+| `ggxx` / `ggxxac` / `ggxxrl` / `ggxxsla` | Guilty Gear XX family | none (carries `NLOBJPUT 0.99`) |
+| `gundmgd` / `gundmxgd` | Gundam Federation vs Zeon | none |
+| `mok` | The Maze of the Kings | none |
+| `monkeyba` | Monkey Ball | none |
+| `slashout` | Slashout | none |
+| `spkrbtl` | Spikers Battle | none |
+| `sprtjam` | Sports Jam | none |
+| `starseek` | Doki Doki Idol Star Seeker | none |
+| `vtennis2` | Virtua Tennis 2 | none |
+| `quizqgd` | Quiz Keitai Q mode | none at 60 s |
+| `takoron` | Noukone Puzzle Takoron | none at 15 s |
+| `lupinsho` | Lupin The Third - The Shooting | untested (CHD fetch 500) |
+| `puyofev` | Puyo Pop Fever | untested (CHD name mismatch) |
 
-Not yet swept, CHD available: `bdrdown`, `cfield`, `cleoftp`,
-`confmiss`, `cvsgd`, `ggxx`, `ggxxac`, `ggxxrl`, `ggxxsla`, `gundmgd`,
-`gundmxgd`, `ikaruga`, `jingystm`, `karous`, `keyboard`, `kurucham`,
-`lupinsho`, `meltyb`, `mok`, `monkeyba`, `puyofev`, `radirgy`, `senko`,
-`senkosp`, `sfz3ugd`, `shikgam2`, `slashout`, `spkrbtl`, `sprtjam`,
-`starseek`, `trgheart`, `trizeal`, `undefeat`, `usagiym`, `vtennis2`.
+Sixteen titles load **2.07 built 2001-03-21**. That is the dominant
+2001-2008 library.
 
 ## Dating pattern
 
 - SDK 2.02 (disc 2000-11-22) ships `kunoi2.lib` 2.04 built 2000-11-17:
-  five days before the disc. Moeru Casinyo loads exactly that build.
+  five days before the disc. Moeru Casinyo and Cleopatra Fortune Plus
+  load exactly that build.
 - SDK 2.04 (disc 2001-03-23) should ship the 2.07 generation: library
-  2.07 is built 2001-03-21, two days before the disc. Super Shanghai
-  2005, Tetris Kiwamemichi and Psyvariar 2 all load that build.
+  2.07 is built 2001-03-21, two days before the disc. Sixteen titles
+  load that build.
+- The 2.06 build (2001-02-20) sits between: Ikaruga and La Keyboard.
+- The 0.96/0.99 build line (Oct 2000-Mar 2001) is separate from the
+  2.0x line and is used by Virtua Athletics, SFZ3 Upper, Jingi Storm
+  and Melty Blood Act Cadenza.
 
 No compiler banner survives in RAM; the compiler itself still has to
 come from the disc.
