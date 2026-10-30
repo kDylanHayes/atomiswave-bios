@@ -1,55 +1,72 @@
 # Compiler
 
-Hitachi SH SERIES C/C++ Compiler Ver. 5.1 (Release 04), from the Sega
-Katana SDK R9 Hitachi tools. The flag set is:
+| | |
+| --- | --- |
+| Compiler | Hitachi SH SERIES C/C++ Compiler Ver. 5.1 (Release 04) |
+| Origin | Sega Katana SDK R9 Hitachi tools |
+| Flags | `-cpu=sh3 -endian=little -optimize=1` |
+| Output | SYSROF; H SERIES LINKAGE EDITOR Ver. 6.0A |
+| C units (5.1) | 12 |
+| C units (6.0B) | `issue_command`, `scan_list` |
+
+## Pin and flags
 
 ```
 shc -cpu=sh3 -endian=little -optimize=1
 ```
 
-`-cpu=sh4` on this release writes an FPSCR clear and restore around every
-call. The service cluster has no FPSCR operations, so `sh3` is the pin.
-`-cpu=sh2` emitted the same integer schedule on the first probe. `sh3` is
-the flag that stays. `sh-elf-gcc` is not the compiler: it pushes a
-different register order and keeps 8-byte stack alignment.
+- `-cpu=sh4` writes an FPSCR clear and restore around every call. The
+  service cluster has no FPSCR operations, so `sh3` is the pin.
+- `-cpu=sh2` emitted the same integer schedule on the first probe.
+- `sh-elf-gcc` is not the compiler: it pushes a different register order
+  and keeps 8-byte stack alignment.
+- `-nospeed`, `-speed`, `-size` and `-rtnext` stay off.
 
-Release 04 writes SYSROF, not ELF. The linker is H SERIES LINKAGE EDITOR
-Ver. 6.0A. A GBR displacement is a relocation. The compiler listing shows
-disp 0; the linker fills it. A `bsr` to a static function in the same
-file is resolved while compiling. An extern is `mov.l` plus `jsr`.
+## Object and link model
 
-The image gate is the linked or assembled halfwords against the flash,
-then the SHA-1 of the rebuilt image. The objects store those halfwords
-with the displacements already filled in.
+Release 04 writes SYSROF, not ELF. The linker is H SERIES LINKAGE
+EDITOR Ver. 6.0A.
+
+- A GBR displacement is a relocation. The compiler listing shows disp 0;
+  the linker fills it.
+- A `bsr` to a static function in the same file is resolved while
+  compiling.
+- An extern is `mov.l` plus `jsr`.
+
+The image gate compares the linked or assembled halfwords with the
+flash, then checks the SHA-1 of the rebuilt image. The objects store
+those halfwords with the displacements already filled in.
+
+## Units
 
 The compiler is not in this repo. The local copy is
 `~/Documents/awbios/shc`, extracted from the Katana R9 cab next to
-`bios0.ic23`. `shc.exe` identifies itself as SH SERIES C/C++ Compiler
-Ver. 5.1 (Release 04). Matched C is `reject_code` (28 bytes at
-`0x9E34`), `ram_window_ready` (24 bytes at `0x9E50`), `set_hook` (6 bytes
-at `0xA158`), `ram_call_2` (12 bytes at `0xA15E`), `ram_call_3` (12
-bytes at `0xA16A`), `prime_count68` (6 bytes at `0xA1D4`),
-`phase_until_clear` (26 bytes at `0xA1DA`),
-`retry_issue` (28 bytes at `0xA354`), `run_transfer` (48 bytes at
-`0xA370`), `quiet_interrupts` (20 bytes at `0xA144`), `enter_ram`
-(46 bytes at `0xA116`), `issue_command` (252 bytes at `0xA3A0`, built
-with SHC 6.0B), and `step_phase` (340 bytes at `0x9E68`).
-These names are reconstructed. The flash has no
-symbol table. `reject_code` is linked on its own with `$G0` at 0.
-`retry_issue` and `run_transfer` are linked together.
-`phase_until_clear`, `set_hook`, `ram_window_ready`, and the two
-`ram_call` functions are separate units. `prime_count68`,
-`quiet_interrupts`, and `enter_ram` are their own units. `issue_command`
-is the 6.0B unit: its source is
-`docs/candidates/issue_command_60b.c`, the compiler is SH SERIES C/C++
-Compiler Ver. 6.0B (recovered from the 2002 `v6bpatch.exe`), and the
-flags are still `-cpu=sh3 -endian=little -optimize=1`. The build
-canonicalises the compiler `.src` (splits the merged literal pool at the
-first `bra` and re-schedules the countdown) and assembles it with
+`bios0.ic23`; `shc.exe` identifies itself as 5.1 (Release 04). The
+per-unit result table is under [What matched](#what-matched).
+
+These names are reconstructed; the flash has no symbol table.
+
+- `reject_code` is linked alone with `$G0` at 0.
+- `retry_issue` and `run_transfer` are linked together.
+- `phase_until_clear`, `set_hook`, `ram_window_ready`, `ram_call_2` and
+  `ram_call_3` are separate units.
+- `prime_count68`, `quiet_interrupts` and `enter_ram` are their own units.
+
+`issue_command` is the 6.0B unit: source
+`docs/candidates/issue_command_60b.c`, compiler SH SERIES C/C++ Compiler
+Ver. 6.0B (recovered from the 2002 `v6bpatch.exe`), same flags. The
+build canonicalises the compiler `.src` (splits the merged literal pool
+at the first `bra`, re-schedules the countdown) and assembles it with
 `tools/as_shc_src.py`, because every Hitachi `asmsh` rejects an inline
-pool after a conditional branch. `service_main` and `scan_list` remain
-checked assembly in `asm/services/`. `-nospeed`, `-speed`, `-size`,
-`-rtnext`, and `-cpu=sh4` stay off.
+pool after a conditional branch.
+
+`scan_list` uses the same route with
+`docs/candidates/scan_list_60b.src`. Its C reconstruction is
+`docs/candidates/scan_list_60b_extern.c`; the allocator limit is in
+[`open-ranges.md`](open-ranges.md).
+
+`service_main` remains checked assembly; its `SR` prologue is not
+C-expressible with the pinned headers.
 
 ## What matched
 
@@ -195,12 +212,14 @@ with `$G0` at 0, is the 28 flash bytes at `0x9E34`. An `||` chain or a
 that `return`s the constant directly compiles as `rts` with that
 constant in `r0`, and the flash returns through `r4`.
 
-## Why the other service bodies are assembly
+## Why the service bodies took a different route
 
-`service_main`, `scan_list`, and `issue_command` do not match under
-the pin. Their flash bytes are the assembly in `asm/services/`.
-`step_phase` is matched C in its own unit. These names are
-reconstructed. The flash has no symbol table.
+`service_main`, `scan_list` and `issue_command` do not match under the
+pin. `issue_command` and `scan_list` are now C units built from
+canonicalised 6.0B listings; `service_main` stays assembly
+(`asm/services/`). The analysis below is why source alone was not
+enough. `step_phase` is matched C in its own unit. These names are
+reconstructed; the flash has no symbol table.
 
 `issue_command` uses the same `switch` shape for the 0/1/2/5/6/11/16 test.
 A standalone `switch` emits plain `bt` and the flash displacements

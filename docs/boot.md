@@ -41,3 +41,10 @@ The `jmp` at file `0x966` is `0xA0000000` ored with the dword at `0xAC01006C`. `
 ## Footer
 
 File `0x1A000` is twelve original bytes. bios1 differs at `0x1A003`, `0x1A004`, `0x1A006`, `0x1A007`, `0x1A008`, and `0x1A009`. No instruction in this split loads that address.
+
+
+## See also
+
+- [`../README.md`](../README.md) — status table and build
+- [`status.md`](status.md) — gate and current blocker
+- [`services.md`](services.md) — service-cluster semantics

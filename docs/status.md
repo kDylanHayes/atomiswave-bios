@@ -73,3 +73,11 @@ Before paying, ask the seller for a photo of
 
 No other 2001+ NAOMI/System SP SDK disc is public or listed, and the
 Atomiswave SystemX SDK/HDD remains unobtained.
+
+
+## See also
+
+- [`compiler.md`](compiler.md) — pin, per-unit notes, rejected flags
+- [`open-ranges.md`](open-ranges.md) — research log and blocker evidence
+- [`tooling.md`](tooling.md) — Ghidra and REA setup
+- [`../README.md`](../README.md) — status table and build

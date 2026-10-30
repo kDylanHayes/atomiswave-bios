@@ -1,18 +1,37 @@
 # Open ranges
 
-Three code ranges are still checked assembly. Everything else is either
-matched C or byte-identical boot assembly.
+Research log for the service-cluster units that were not matched from C.
+The build gate itself is in the [README](../README.md).
 
-| Flash | Bytes | Name | Assembly |
+**Only `service_main` is still checked assembly.** `issue_command` and
+`scan_list` were closed with canonicalised SHC 6.0B listings and now
+count as C units.
+
+| Flash | Bytes | Name | Status |
 | --- | --- | --- | --- |
-| `0x9FBC` | 346 | `service_main` | `asm/services/service_main.s` |
-| `0xA1F4` | 352 | `scan_list` | `asm/services/scan_list.s` |
-| `0xA3A0` | 252 | `issue_command` | `asm/services/issue_command.s` |
+| `0x9FBC` | 346 | `service_main` | assembly (`asm/services/service_main.s`) |
+| `0xA1F4` | 352 | `scan_list` | C, canonicalised `.src` |
+| `0xA3A0` | 252 | `issue_command` | C, canonicalised `.src` |
 
-`issue_command` has had the most compiler work, so it is the worked
-example below. The other two use the same ABI-shaped code and are
-expected to hit the same scheduler difference, but they have not been
-taken to the same instruction-level diff.
+The sections below are chronological. Earlier ones describe states that
+later work superseded; each opens with its conclusion where that helps.
+
+## Contents
+
+- [Probing one function](#probing-one-function)
+- [issue_command](#issue_command)
+- [Toolchain versions tested](#toolchain-versions-tested)
+- [Compiler recovered: SHC 6.0B](#compiler-recovered-shc-60b)
+- [Compiler identified: SHC 6.0C](#compiler-identified-shc-60c)
+- [Fingerprint corpus](#fingerprint-corpus)
+- [Compiler identified: SHC 6.0AD](#compiler-identified-shc-60ad)
+- [issue_command closed with SHC 6.0B](#issue_command-closed-with-shc-60b)
+- [What would close the remaining two](#what-would-close-the-remaining-two)
+- [Search round 2: the SystemX SDK](#search-round-2-the-systemx-sdk-and-a-corrected-60ad-test)
+- [Allocation experiments](#allocation-experiments-extern-calls-and-the-hoist-fingerprint)
+- [Undumped disc lead: Kunoichi SDK 2.04](#undumped-disc-lead-kunoichi-sdk-204-2001-03-23)
+- [scan_list: source shaping exhausted](#scan_list-source-shaping-exhausted)
+- [scan_list canonicalised listing](#scan_list-canonicalised-listing)
 
 ## Probing one function
 

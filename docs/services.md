@@ -117,3 +117,10 @@ a canonicalised `.src` that splits the compiler's merged pool at the first
 `prime_count68` is matched C. `mov.w @(disp,PC)` zero-extends the 8-bit displacement. At `0xA1D4` the displacement is `0x87`, so the load address is `0xA1D8 + 0x10E = 0xA2E6`. That halfword is `0x0258`, which is 600. It sits in `scan_list`, between a `bra` and its target, so those bytes are not executed. The link unit's 67 empty globals exist to put the compiler's copy of that halfword at the same displacement. `rof2bin -e=6` keeps the function. The flash halfword stays in `scan_list`.
 
 `service_main` loads its literals from `service_pool`, file `0xA178` through `0xA1D0`. The halfword at `0xA0E6` sits in `service_main`, between a `bf` and its target. When `r11` is 0 those bytes execute: `mov r10, r5`, then `bra` over the following load of `r5`, with `add #16, r5` in the delay slot. `r5` is then `r10 + 16`. When `r11` is not 0, the `bf` skips them and `r5` is the pool constant `0xB06E`. `r4` is `0x8C010000` on both paths. A sign-extended reading of `prime_count68`'s displacement lands on this `0x65A3`. The CPU does not. The displacement is zero-extended.
+
+
+## See also
+
+- [`status.md`](status.md) — gate and current blocker
+- [`compiler.md`](compiler.md) — compiler pin and per-unit notes
+- [`open-ranges.md`](open-ranges.md) — `service_main` and the allocator work
