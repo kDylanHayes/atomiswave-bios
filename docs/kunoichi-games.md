@@ -114,7 +114,7 @@ compiler binaries or a build manifest. Those are only on the SDK disc.
 ## Cartridge titles (all 94 sets)
 
 The 0.239 NAOMI DAT lists 94 cart sets. All were run through the same
-RAM-dump method. Eighteen load a Kunoichi banner:
+RAM-dump method. Nineteen load a Kunoichi banner:
 
 | Library | Build | Titles |
 |---|---|---|
@@ -131,30 +131,66 @@ were supplied from the MAME 0.289 merged set, so all 94 carts ran.
 The 0.06zrTEST2 hit pushes the line back to **September 1999**; the
 2008-2009 carts (`mbaa`, `radirgyn`) still use 2.07.
 
-## What is still uncovered
-
-- NAOMI 2 titles (different platform; MAME has some).
-- System SP titles if MAME drivers exist.
-
 ## System SP (SPIDER)
 
 MAME's `segasp` driver works with the BIOS built from the retrobios
-`segasp/` files. The same RAM dump applies; the library is a
-platform-specific `2.07sp` build.
+`segasp/` files. The same RAM-dump method applies. System SP kept the
+Kunoichi2 line alive after the NAOMI 2.07 build, with platform-specific
+`sp` builds:
 
-| MAME set | Title | Banner |
-|---|---|---|
-| `dinoking` | Dinosaur King (USA) | Kunoichi2 Library for SPIDER 2.07sp, Jun 21 2004 |
-| `lovebery` | Love and Berry 1st-2nd (Ver 2.000) | Kunoichi2 Library for SPIDER 2.07sp, Oct 08 2004 |
-| `dinoki25` / `dinokior` | Dinosaur King variants | untested (CHD `mda-c0047` / `mda-c0021` missing) |
+| Library | Build | MAME sets | Titles |
+|---|---|---|---|
+| Kunoichi2 2.07sp | Jun 21 2004 | `dinoking` | Dinosaur King (USA) |
+| Kunoichi2 2.07sp | Oct 08 2004 | `lovebery`, `aminosan`, `mirworld` | Love And Berry 1st-2nd, Aminosan, Mirage World |
+| Kunoichi2 2.08sp | Jun 14 2006 | `bingogal`, `bingogals`, `brickppl`, `galilfac`, `magicpop`, `manpuku`, `ochaken`, `puyomedal`, `tetgiant`, `unomedal`, `westdrmg` | Bingo Galaxy (main/satellite), Brick People, Galileo Factory, Magical Poppins, Manpuku Suizokukan, Ocha-Ken Hot Medal, Puyo Puyo! The Medal Edition, Tetris Giant, UNO the Medal, Western Dream Gold |
+| Kunoichi2 2.09sp | Feb 26 2008 | `kingyo`, `shateki` | Yataimura Kingyosukui, Yataimura Shateki |
+| none | 2004/2005 | `dinokior`, `dinoki25` | Dinosaur King Operation: Dinosaur Rescue, Dinosaur King D-Team VS. the Alpha Fortress |
+
+`dinokior` and `dinoki25` load `SPIDERHAT` (`Ver.0.010`, 2004;
+`Ver.0.020`, 2005) but no Kunoichi banner. `isshoni` (Isshoni Wanwan
+Waiwai Puppy 2008) hung under MAME and produced no dump; `dinoki4` is
+a placeholder zip.
+
+The `sp` line runs **2.07sp (2004) -> 2.08sp (2006) -> 2.09sp (2008)**,
+four years past the last NAOMI build.
 
 ## NAOMI 2
 
-MAME supports the platform. `clubk2k3` (Club Kart 2003) has a complete
-ROM set and boots, but shows no banner in the first 8 MB of RAM;
-NAOMI 2 has a larger memory map and needs a wider dump. `initd`
-(Initial D) needs CHD `gds-0020b`, available in the
-[Naomi 2 redump CHD collection](https://archive.org/details/sega-naomi2-redump-collection).
+NAOMI 2 is a separate library family. Its ROMs carry two banners:
+`NAOMI LIBRARY Ver 0.8 AM R&D` and `NAOMI2 LIBRARY Ver 0.0x SOFT1 R&D`,
+plus an `nlam/Version` build string. They are readable directly from
+the cart ROM zips:
+
+| MAME set | Title | NAOMI LIBRARY 0.8 | NAOMI2 LIBRARY | nlam |
+|---|---|---|---|---|
+| `wldrider` | Wild Riders | Feb 21 2000 | 0.01, May 24 2000 | 2.220550, Aug 22 2000 |
+| `vstrik3c` | Virtua Striker 3 (World, Rev B) | Aug 24 2000 | 0.02, Aug 14 2000 | 2.220550, Aug 22 2000 |
+| `kingrt66` | The King of Route 66 (Rev A) | Jun 11 2001 | 0.02, Jun 11 2001 | 2.230620, May 15 2001 |
+| `vf4cart` | Virtua Fighter 4 (World) | Jun 15 2001 | 0.02, Jun 15 2001 | 2.230720, Jun 08 2001 |
+| `soulsurf` | Soul Surfer (Rev A) | Nov 21 2001 | 0.02, Oct 30 2000 | 2.220780, Sep 12 2001 |
+| `clubk2k3` | Club Kart: European Session (2003, Rev A) | Dec 17 2001 | 0.03, Apr 11 2001 | 2.220830, Feb 28 2003 |
+| `vf4evoct` | Virtua Fighter 4: Evolution (World) | May 18 2002 | 0.03, May 18 2002 | 2.220830, Dec 14 2001 |
+
+The GD-based NAOMI 2 titles (`initd`, `beachspi`, `vf4tuned`,
+`initdv2*`, `initdv3*`) wrap the game in a `NAOMIGD.BIN` container whose
+234 MB `VB.BIN` payload is packed; no plaintext library banner survives
+in the CHD or in a 32 MB RAM dump. Their library versions are not yet
+recovered.
+
+## Platform matrix
+
+| Platform | Library family | Earliest | Latest |
+|---|---|---|---|
+| NAOMI (cart/GD) | Kunoichi / Kunoichi2 | 0.06zrTEST2, Sep 1999 | 2.07, Mar 2001 |
+| Atomiswave | SystemX / Shinobi | SystemX 1.01, 2001 | Shinobi 2.01, 2003 |
+| System SP | Kunoichi2 `sp` | 2.07sp, Jun 2004 | 2.09sp, Feb 2008 |
+| NAOMI 2 | NAOMI2 LIBRARY | 0.01, May 2000 | 0.03, May 2002 |
+
+## What is still uncovered
+
+- GD-based NAOMI 2 payloads (`initd`, `beachspi`, `vf4tuned`, `initdv2*`, `initdv3*`).
+- `isshoni` and `dinoki4` on System SP.
+- Atomiswave prototypes (below).
 
 ## Atomiswave prototypes
 
